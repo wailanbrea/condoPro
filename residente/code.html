@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CondoPro Resident Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#0c56d0",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#65dca4",
+                      "on-tertiary-fixed": "#291800",
+                      "on-tertiary-container": "#ffca81",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#dae2ff",
+                      "surface-container-high": "#dfe8ff",
+                      "inverse-surface": "#20314b",
+                      "inverse-on-surface": "#ecf0ff",
+                      "on-tertiary-fixed-variant": "#624000",
+                      "surface-bright": "#f9f9ff",
+                      "surface-dim": "#cadbfc",
+                      "on-primary-fixed-variant": "#0040a2",
+                      "secondary": "#006c47",
+                      "on-secondary-container": "#00734c",
+                      "on-error-container": "#93000a",
+                      "outline-variant": "#c3c6d6",
+                      "on-tertiary": "#ffffff",
+                      "background": "#f9f9ff",
+                      "secondary-fixed": "#82f9be",
+                      "on-surface": "#091c35",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed": "#002113",
+                      "surface": "#f9f9ff",
+                      "primary": "#003d9b",
+                      "surface-container-low": "#f0f3ff",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-container": "#82f9be",
+                      "on-surface-variant": "#434654",
+                      "primary-fixed-dim": "#b2c5ff",
+                      "outline": "#737685",
+                      "tertiary-container": "#7d5200",
+                      "surface-variant": "#d6e3ff",
+                      "on-primary-fixed": "#001848",
+                      "on-primary-container": "#c4d2ff",
+                      "surface-container": "#e7eeff",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed-variant": "#005235",
+                      "tertiary-fixed": "#ffddb3",
+                      "inverse-primary": "#b2c5ff",
+                      "tertiary-fixed-dim": "#ffb950",
+                      "surface-container-highest": "#d6e3ff",
+                      "tertiary": "#5e3c00",
+                      "primary-container": "#0052cc",
+                      "on-background": "#091c35",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "lg": "24px",
+                      "gutter": "24px",
+                      "base": "4px",
+                      "xl": "32px",
+                      "md": "16px",
+                      "xs": "4px",
+                      "margin": "40px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "display-xl": ["Inter"],
+                      "mono-data": ["JetBrains Mono"],
+                      "label-caps": ["Inter"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { background-color: #f4f5f7; }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Top Navigation Bar (Shared Component Anchor) -->
+<header class="sticky top-0 w-full z-30 flex justify-between items-center px-gutter py-md bg-white dark:bg-on-surface shadow-sm">
+<div class="flex items-center gap-lg">
+<span class="font-headline-lg text-headline-lg font-black text-primary dark:text-primary-fixed">CondoPro</span>
+<nav class="hidden md:flex gap-lg ml-xl">
+<a class="text-primary dark:text-primary-fixed font-semibold border-b-2 border-primary pb-1 font-body-lg text-body-lg" href="#">Balance</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors font-body-lg text-body-lg" href="#">Invoices</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors font-body-lg text-body-lg" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="hidden md:block px-lg py-sm bg-primary-container text-white rounded-lg font-bold transition-transform active:scale-95">Upload Voucher</button>
+<span class="text-on-surface-variant font-body-md">ES/EN</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-sm hover:bg-surface-container-low rounded-full">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-sm hover:bg-surface-container-low rounded-full" data-weight="fill">account_circle</span>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-4 md:px-margin py-lg space-y-lg">
+<!-- Hero Section: Account Balance -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<div class="lg:col-span-2 bg-primary dark:bg-primary-container rounded-xl p-lg text-on-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+<!-- Background visual element -->
+<div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+<span class="material-symbols-outlined text-[160px]" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div class="z-10">
+<p class="font-label-caps text-label-caps opacity-90 uppercase tracking-widest mb-xs">Tu Balance Actual</p>
+<h1 class="font-display-xl text-display-xl mb-sm">RD$14,843.68</h1>
+<div class="flex items-center gap-xs text-body-sm opacity-80">
+<span class="material-symbols-outlined text-md">info</span>
+<span>Próximo vencimiento: 05 de Oct, 2023</span>
+</div>
+</div>
+<div class="mt-lg md:mt-0 z-10 w-full md:w-auto">
+<button class="w-full md:w-auto flex items-center justify-center gap-sm bg-white text-primary px-xl py-md rounded-lg font-bold shadow-lg hover:bg-surface-container-lowest transition-all">
+<span class="material-symbols-outlined">cloud_upload</span>
+                        Subir Voucher de Pago
+                    </button>
+</div>
+</div>
+<!-- Profile Info Card -->
+<div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex items-center gap-lg">
+<div class="relative">
+<img alt="Resident Profile" class="w-16 h-16 rounded-full object-cover border-2 border-primary-container" data-alt="A professional headshot of a smiling young adult man with short dark hair and a light beard, set against a blurred urban background with soft natural morning light. The visual style is high-end corporate lifestyle photography, reflecting the clean and sophisticated aesthetic of a premium resident portal with a focus on trust and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANRqimIQrsJHlMoHgj1b7w1xHJPdsztE9-Z561xDRzZAs4LvIOonTi387dXb9MlDCL-L57xmIjC5GBFjGeRGsTkwgd1tBLRw1IbobZlspe-EeKDiiBo53_ZJa4gHpv4OB3rVokBZwdmnk0OzpBKwww6OU3zgzPfh37_vKnG_fxkYUgY0MneLbvIUODpwIFI3Bgxr_BC2HA9Qtyn3f7u47Wpc47CcCSyYesXoXDSU1NcQQFqleFvqygVH2XLis8tzQcdqUHx0XMKlc"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-secondary border-2 border-white rounded-full"></div>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Carlos Mendoza</h3>
+<p class="text-on-surface-variant font-body-md">Torre Imperial, Apto 402</p>
+<span class="inline-block mt-xs px-sm py-xs bg-secondary/10 text-secondary text-label-caps rounded uppercase font-bold">Residente Activo</span>
+</div>
+</div>
+</section>
+<!-- Current Invoice Detail & Info Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Invoice Highlights -->
+<div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="px-lg py-md bg-surface-container-low border-b border-outline-variant/20 flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">description</span>
+                        Factura del Mes
+                    </h2>
+<span class="font-label-caps text-label-caps text-on-surface-variant">OCTUBRE 2023</span>
+</div>
+<div class="p-lg space-y-md">
+<div class="flex justify-between items-center py-sm border-b border-outline-variant/10">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant">home</span>
+<span class="font-body-md">Cuota Mantenimiento</span>
+</div>
+<span class="font-mono-data text-mono-data">RD$10,500.00</span>
+</div>
+<div class="flex justify-between items-center py-sm border-b border-outline-variant/10">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant">local_gas_station</span>
+<span class="font-body-md">Consumo de Gas</span>
+</div>
+<span class="font-mono-data text-mono-data">RD$2,343.68</span>
+</div>
+<div class="flex justify-between items-center py-sm">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant">add_card</span>
+<span class="font-body-md">Cuota Extra: Ascensor</span>
+</div>
+<span class="font-mono-data text-mono-data">RD$2,000.00</span>
+</div>
+<div class="pt-md">
+<button class="w-full flex items-center justify-center gap-sm border-2 border-primary text-primary px-lg py-sm rounded-lg font-bold hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                            Ver PDF Completo
+                        </button>
+</div>
+</div>
+</div>
+<!-- Quick Stats -->
+<div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+<div class="space-y-sm">
+<span class="material-symbols-outlined text-primary text-3xl">insights</span>
+<h4 class="font-body-lg text-body-lg font-bold">Consumo de Gas</h4>
+<p class="text-on-surface-variant text-body-sm">Has consumido un 12% menos que el mes pasado.</p>
+</div>
+<div class="mt-lg">
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[65%] rounded-full"></div>
+</div>
+<span class="text-xs text-on-surface-variant mt-sm block">6.5 m³ utilizados de 10 m³ est.</span>
+</div>
+</div>
+<div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+<div class="space-y-sm">
+<span class="material-symbols-outlined text-secondary text-3xl">notifications_active</span>
+<h4 class="font-body-lg text-body-lg font-bold">Avisos del Edificio</h4>
+<p class="text-on-surface-variant text-body-sm">Mantenimiento de piscina este próximo sábado 14.</p>
+</div>
+<a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="#">
+                    Ver cartelera <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- History Section -->
+<section class="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+<div class="px-lg py-md border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">history</span>
+                    Historial Reciente
+                </h2>
+<button class="text-primary font-bold text-body-sm hover:underline">Ver Todo</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-lg py-md font-label-caps text-label-caps text-on-surface-variant">Fecha</th>
+<th class="px-lg py-md font-label-caps text-label-caps text-on-surface-variant">Concepto</th>
+<th class="px-lg py-md font-label-caps text-label-caps text-on-surface-variant">Monto</th>
+<th class="px-lg py-md font-label-caps text-label-caps text-on-surface-variant">Estado</th>
+<th class="px-lg py-md font-label-caps text-label-caps text-on-surface-variant">Acción</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md font-body-md text-on-surface">28 Sep, 2023</td>
+<td class="px-lg py-md">
+<div class="flex flex-col">
+<span class="font-body-md font-bold">Mantenimiento Septiembre</span>
+<span class="text-xs text-on-surface-variant">Ref: #492834</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-data text-on-surface">RD$12,450.00</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center gap-xs px-sm py-xs bg-secondary/10 text-secondary text-body-sm rounded-full font-semibold">
+<span class="w-2 h-2 bg-secondary rounded-full"></span>
+                                    Confirmado
+                                </span>
+</td>
+<td class="px-lg py-md">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">receipt</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md font-body-md text-on-surface">15 Oct, 2023</td>
+<td class="px-lg py-md">
+<div class="flex flex-col">
+<span class="font-body-md font-bold">Voucher - Pago Parcial</span>
+<span class="text-xs text-on-surface-variant">Ref: #501239</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-data text-on-surface">RD$5,000.00</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center gap-xs px-sm py-xs bg-tertiary-fixed text-tertiary text-body-sm rounded-full font-semibold">
+<span class="w-2 h-2 bg-tertiary rounded-full"></span>
+                                    Pendiente
+                                </span>
+</td>
+<td class="px-lg py-md">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">visibility</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md font-body-md text-on-surface">28 Ago, 2023</td>
+<td class="px-lg py-md">
+<div class="flex flex-col">
+<span class="font-body-md font-bold">Mantenimiento Agosto</span>
+<span class="text-xs text-on-surface-variant">Ref: #481232</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-data text-on-surface">RD$12,100.00</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center gap-xs px-sm py-xs bg-secondary/10 text-secondary text-body-sm rounded-full font-semibold">
+<span class="w-2 h-2 bg-secondary rounded-full"></span>
+                                    Confirmado
+                                </span>
+</td>
+<td class="px-lg py-md">
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined">receipt</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile only Shared Component Anchor) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-white dark:bg-on-surface shadow-2xl md:hidden border-t border-outline-variant/10">
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-xl px-3 py-1" href="#">
+<span class="material-symbols-outlined" data-weight="fill">account_balance</span>
+<span class="font-label-caps text-label-caps">Balance</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Invoices</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-caps text-label-caps">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">cloud_upload</span>
+<span class="font-label-caps text-label-caps">Voucher</span>
+</a>
+</nav>
+<!-- Spacer for Bottom Nav on Mobile -->
+<div class="h-20 md:hidden"></div>
+</body></html>

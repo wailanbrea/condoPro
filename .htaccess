@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews -Indexes
+</IfModule>
+
+<FilesMatch \.(?i:php)$>
+    Require all granted
+</FilesMatch>
+
+ErrorDocument 404 /public/index.php
+ErrorDocument 403 /public/index.php

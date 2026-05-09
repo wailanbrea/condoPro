@@ -1,0 +1,577 @@
+Actúa como un DESARROLLADOR SENIOR full-stack especializado en sistemas administrativos, contabilidad básica, facturación, multi-tenant SaaS, seguridad web y arquitectura limpia.
+
+Necesito desarrollar un SISTEMA WEB PARA ADMINISTRACIÓN DE CONDOMINIOS.
+
+IMPORTANTE:
+- Debes trabajar paso a paso.
+- No avances a la siguiente fase sin terminar la actual.
+- No generes código innecesario.
+- No repitas explicaciones largas.
+- Antes de escribir código, debes analizar los requisitos de la fase.
+- Si falta un dato crítico, pregunta primero.
+- Si puedes asumir algo sin afectar la arquitectura, asúmelo y continúa.
+- Todo debe estar preparado para soportar 2 idiomas: español e inglés.
+- El idioma principal será español.
+- La arquitectura debe permitir agregar más idiomas en el futuro.
+- El sistema debe ser profesional, seguro, escalable y fácil de mantener.
+
+TECNOLOGÍA BASE:
+- Backend: PHP 8+
+- Base de datos: MySQL/MariaDB
+- Frontend: HTML, CSS, JavaScript, Bootstrap 5
+- Panel visual estilo Argon Dashboard
+- Servidor objetivo: Windows VPS con Apache
+- No usar Linux como requisito obligatorio
+- No usar frameworks pesados salvo que se justifique
+- El sistema debe funcionar correctamente desde PC, tablet y celular
+
+OBJETIVO DEL SISTEMA:
+Crear una plataforma web para administrar condominios, donde cada apartamento tenga uno o más usuarios residentes. Cada residente podrá iniciar sesión, ver su deuda, historial de pagos, facturas mensuales, consumo de gas y subir vouchers de pago. El administrador confirmará o rechazará esos pagos luego de verificar que el dinero entró a una cuenta bancaria configurada.
+
+El sistema debe poder manejar múltiples condominios, no solo uno. Debe estar preparado como SaaS privado.
+
+MÓDULOS PRINCIPALES:
+
+1. AUTENTICACIÓN Y ROLES
+Crear sistema de login seguro.
+Roles mínimos:
+- Super Administrador
+- Administrador de Condominio
+- Residente
+
+Reglas:
+- El Super Administrador puede gestionar varios condominios.
+- El Administrador solo gestiona su condominio.
+- El Residente solo ve sus apartamentos asociados.
+- Usar contraseñas hasheadas.
+- Implementar sesiones seguras.
+- Controlar permisos por rol.
+
+2. MULTI-CONDOMINIO
+Cada registro importante debe tener condominium_id.
+Crear tabla condominiums con:
+- id
+- name
+- address
+- phone
+- email
+- logo
+- currency
+- language_default
+- status
+- created_at
+- updated_at
+
+3. APARTAMENTOS
+Cada apartamento debe tener:
+- condominio
+- número de apartamento
+- propietario/residente principal
+- estado
+- balance pendiente
+- cuota de mantenimiento fija
+- contador de gas opcional
+
+Funciones:
+- Crear apartamento
+- Editar apartamento
+- Desactivar apartamento
+- Asociar usuarios residentes
+- Ver estado de cuenta del apartamento
+
+4. USUARIOS RESIDENTES
+Cada residente podrá:
+- Entrar al sistema
+- Ver lo que debe
+- Ver historial de pagos
+- Ver facturas
+- Ver consumo de gas
+- Subir voucher de pago
+- Ver si su pago fue confirmado, rechazado o está pendiente
+
+5. FACTURACIÓN MENSUAL
+El sistema debe generar facturas mensuales por apartamento.
+
+Cada factura debe incluir:
+- Mantenimiento
+- Gas
+- Cuotas extraordinarias
+- Atrasos
+- Mora si aplica
+- Balance anterior
+- Pagos aplicados
+- Total a pagar
+- Estado: pendiente, parcial, pagada, vencida
+
+La factura debe tener detalle por conceptos, no solo un total.
+
+Crear tablas:
+- monthly_bills
+- bill_items
+
+monthly_bills:
+- id
+- condominium_id
+- apartment_id
+- billing_month
+- billing_year
+- subtotal
+- previous_balance
+- payments_applied
+- total
+- status
+- due_date
+- created_at
+- updated_at
+
+bill_items:
+- id
+- bill_id
+- concept_type
+- description
+- amount
+- reference_id
+- created_at
+
+Tipos de concepto:
+- maintenance
+- gas
+- extra_charge
+- late_fee
+- previous_balance
+- adjustment
+
+6. LECTURA DE GAS
+El sistema debe permitir registrar consumo de gas por apartamento.
+
+Datos:
+- apartamento
+- fecha lectura inicial
+- fecha lectura final
+- lectura inicial
+- lectura final
+- consumo en m3
+- factor de conversión
+- galones
+- precio por galón
+- total a facturar
+
+Fórmulas:
+- consumo_m3 = lectura_final - lectura_inicial
+- galones = consumo_m3 * factor_conversion
+- total_gas = galones * precio_por_galon
+
+Debe permitir:
+- Registrar lecturas mensuales
+- Editar lecturas antes de facturar
+- Generar cargo automático en la factura mensual
+- Reporte total de consumo del mes
+
+7. CUOTAS EXTRAORDINARIAS
+El sistema debe permitir registrar gastos aprobados que se reparten entre residentes.
+
+Ejemplos:
+- Pintura del edificio
+- Reparación de bomba
+- Portón eléctrico
+- Cámaras de seguridad
+- Impermeabilización
+
+Flujo:
+- El administrador crea una cuota extraordinaria.
+- Ingresa monto total.
+- Selecciona método de reparto.
+- Selecciona apartamentos afectados.
+- Define si se paga en una sola factura o en varias cuotas mensuales.
+- El sistema calcula automáticamente cuánto corresponde a cada apartamento.
+- El cargo aparece automáticamente en la factura mensual.
+
+Métodos de reparto:
+- Igual para todos
+- Solo apartamentos seleccionados
+- Por porcentaje
+- Por monto manual
+- En cuotas mensuales
+
+Tablas:
+extra_charges:
+- id
+- condominium_id
+- title
+- description
+- total_amount
+- distribution_type
+- start_month
+- start_year
+- installments_count
+- status
+- created_by
+- created_at
+
+extra_charge_apartments:
+- id
+- extra_charge_id
+- apartment_id
+- assigned_amount
+- monthly_amount
+- percentage
+- created_at
+
+extra_charge_installments:
+- id
+- extra_charge_id
+- apartment_id
+- billing_month
+- billing_year
+- amount
+- bill_item_id
+- status
+- created_at
+
+8. PAGOS Y VOUCHERS
+El residente debe poder reportar un pago subiendo voucher.
+
+Datos:
+- apartamento
+- factura relacionada opcional
+- monto reportado
+- fecha de pago
+- banco origen opcional
+- cuenta destino
+- número de referencia
+- archivo voucher
+- estado
+- observación
+
+Estados:
+- pending
+- confirmed
+- rejected
+- cancelled
+
+Flujo:
+- Residente sube voucher.
+- El pago queda pendiente.
+- Administrador revisa.
+- Administrador confirma o rechaza.
+- Si confirma, el sistema aplica el pago al balance del apartamento.
+- Si rechaza, debe guardar motivo.
+
+Tabla payments:
+- id
+- condominium_id
+- apartment_id
+- user_id
+- bill_id
+- bank_account_id
+- amount
+- payment_date
+- reference_number
+- voucher_path
+- status
+- admin_observation
+- confirmed_by
+- confirmed_at
+- created_at
+
+9. CUENTAS BANCARIAS
+El administrador podrá registrar cuentas bancarias del condominio.
+
+bank_accounts:
+- id
+- condominium_id
+- bank_name
+- account_holder
+- account_number
+- account_type
+- currency
+- status
+
+10. EGRESOS
+Registrar gastos reales del condominio.
+
+Ejemplos:
+- Nómina
+- CAASD
+- EDESUR
+- Gas
+- Ayuntamiento
+- Detergentes
+- Botellones
+- Cargos bancarios
+- Reparaciones
+
+Tablas:
+expense_categories:
+- id
+- condominium_id
+- name
+- status
+
+expenses:
+- id
+- condominium_id
+- category_id
+- date
+- concept
+- amount
+- receipt_path
+- created_by
+- created_at
+
+11. DASHBOARD ADMINISTRATIVO
+Debe mostrar:
+- Ingresos confirmados del mes
+- Pagos pendientes por confirmar
+- Total de gastos del mes
+- Balance actual
+- Apartamentos al día
+- Apartamentos con deuda
+- Total pendiente por cobrar
+- Consumo total de gas
+- Cuotas extraordinarias activas
+- Últimos vouchers subidos
+
+12. PORTAL DEL RESIDENTE
+Debe mostrar:
+- Balance actual
+- Factura mensual actual
+- Historial de facturas
+- Historial de pagos
+- Estado de vouchers
+- Consumo de gas
+- Botón para subir voucher
+
+13. REPORTES
+Crear reportes:
+- Estado de cuenta por apartamento
+- Ingresos por mes
+- Egresos por mes
+- Balance mensual
+- Deudores
+- Pagos pendientes
+- Consumo de gas
+- Cuotas extraordinarias
+- Facturas pagadas y pendientes
+
+Debe permitir exportar:
+- PDF
+- Excel
+
+14. SOPORTE MULTI-IDIOMA
+Debe soportar español e inglés.
+
+Crear sistema de traducciones usando archivos:
+- lang/es.php
+- lang/en.php
+
+No poner textos quemados directamente en vistas.
+Usar función tipo:
+__("dashboard.total_income")
+
+Ejemplo:
+es.php:
+'dashboard.total_income' => 'Ingresos del mes'
+
+en.php:
+'dashboard.total_income' => 'Monthly income'
+
+El usuario debe poder elegir idioma.
+El condominio puede tener idioma predeterminado.
+
+15. SEGURIDAD
+Aplicar:
+- Validación de formularios
+- Sanitización de entradas
+- Protección CSRF
+- Control de sesión
+- Password hashing
+- Validación de archivos subidos
+- Restricción de extensiones para vouchers
+- No permitir acceso directo a archivos privados
+- Control por condominium_id para evitar fuga de datos entre condominios
+- Logs de acciones administrativas
+
+16. AUDITORÍA
+Crear tabla audit_logs:
+- id
+- condominium_id
+- user_id
+- action
+- module
+- reference_id
+- old_value
+- new_value
+- ip_address
+- created_at
+
+Registrar acciones como:
+- Crear factura
+- Confirmar pago
+- Rechazar pago
+- Crear gasto
+- Crear cuota extra
+- Editar apartamento
+- Cambiar balance
+
+17. PLAN DE DESARROLLO OBLIGATORIO
+Debes construir el sistema en fases.
+
+FASE 1:
+- Crear estructura de carpetas
+- Crear configuración base
+- Crear conexión a base de datos
+- Crear helper de idioma
+- Crear layout base
+- Crear login/logout
+- Crear roles básicos
+
+FASE 2:
+- Crear tablas principales
+- Crear migraciones SQL
+- Crear seed inicial
+- Crear condominio inicial
+- Crear usuario superadmin
+
+FASE 3:
+- CRUD de condominios
+- CRUD de apartamentos
+- CRUD de usuarios
+- Asociación usuarios/apartamentos
+
+FASE 4:
+- Módulo de mantenimiento mensual
+- Generación de facturas
+- Detalle de factura
+- Balance por apartamento
+
+FASE 5:
+- Módulo de gas
+- Lecturas mensuales
+- Cálculo automático
+- Integración con factura mensual
+
+FASE 6:
+- Módulo de cuotas extraordinarias
+- Métodos de reparto
+- Cálculo automático por apartamento
+- Integración con factura mensual
+
+FASE 7:
+- Módulo de pagos
+- Subida de vouchers
+- Confirmación/rechazo por administrador
+- Aplicación automática al balance
+
+FASE 8:
+- Módulo de egresos
+- Categorías de gastos
+- Comprobantes
+- Reporte de gastos
+
+FASE 9:
+- Dashboard administrativo
+- Portal residente
+- Estados financieros principales
+
+FASE 10:
+- Reportes PDF y Excel
+- Estado de cuenta
+- Reporte mensual
+- Reporte de deudores
+- Reporte de gas
+
+FASE 11:
+- Auditoría
+- Seguridad avanzada
+- Validación final
+- Pruebas
+
+FASE 12:
+- Preparación para producción en Windows VPS con Apache
+- Archivo .htaccess
+- Configuración de permisos
+- Backup de base de datos
+- Revisión final
+
+18. FORMA DE TRABAJO
+En cada fase debes responder así:
+
+1. Objetivo de la fase
+2. Archivos que se crearán o modificarán
+3. SQL necesario si aplica
+4. Código completo de cada archivo
+5. Explicación corta
+6. Prueba manual para verificar que funciona
+7. Errores comunes y solución
+8. Preguntar si continúo con la siguiente fase
+
+19. REGLAS DE CÓDIGO
+- Código limpio
+- Nombres claros
+- Separar lógica de vistas
+- Evitar código repetido
+- No mezclar HTML con lógica pesada
+- Usar consultas preparadas PDO
+- Manejar errores
+- No mostrar errores sensibles en producción
+- Comentar solo donde sea necesario
+- Mantener compatibilidad con PHP 8+
+
+20. ESTRUCTURA SUGERIDA
+Usar esta estructura inicial:
+
+/app
+  /Controllers
+  /Models
+  /Views
+  /Core
+  /Helpers
+  /Middleware
+
+/config
+  database.php
+  app.php
+
+/lang
+  es.php
+  en.php
+
+/public
+  index.php
+  /assets
+  /uploads
+
+/storage
+  /vouchers
+  /receipts
+  /logs
+
+/database
+  /migrations
+  /seeders
+
+/routes
+  web.php
+
+/vendor
+
+.htaccess
+
+21. CRITERIO FINAL
+El sistema se considera correcto cuando:
+- Un administrador puede crear apartamentos.
+- Un residente puede iniciar sesión.
+- El administrador puede generar factura mensual.
+- El gas se calcula automáticamente por lectura.
+- Las cuotas extraordinarias se reparten automáticamente.
+- El residente puede subir voucher.
+- El administrador puede confirmar o rechazar pago.
+- El balance del apartamento se actualiza.
+- Los gastos del condominio se registran.
+- El dashboard muestra ingresos, egresos y deudas.
+- Todo funciona en español e inglés.
+- El sistema está listo para instalarse en Windows VPS con Apache.
+
+Empieza por la FASE 1.
+Antes de generar código, confirma brevemente la arquitectura que vas a usar y lista los archivos iniciales.
