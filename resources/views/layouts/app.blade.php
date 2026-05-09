@@ -185,12 +185,18 @@
         </nav>
     </div>
     <div class="flex items-center gap-md">
-        <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative">
+        @php
+            $unreadNotifications = \App\Models\Notification::forUser(auth()->user()->id)
+                ->when(auth()->user()->role === 'admin', fn($q) => $q->where('condominium_id', auth()->user()->condominium_id))
+                ->unread()
+                ->count();
+        @endphp
+        <a href="{{ route('notifications.index') }}" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative" title="{{ app()->getLocale() === 'es' ? 'Notificaciones' : 'Notifications' }}">
             <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-            @if(($pendingPayments ?? 0) > 0)
-            <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            @if($unreadNotifications > 0)
+            <span class="absolute top-0 right-0 min-w-[18px] h-[18px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
             @endif
-        </button>
+        </a>
         <div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
         {{-- User dropdown --}}
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">

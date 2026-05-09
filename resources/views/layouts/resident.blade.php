@@ -124,12 +124,23 @@
         </nav>
     </div>
     <div class="flex items-center gap-md">
+        @php
+            $unreadNotifications = \App\Models\Notification::forUser(auth()->user()->id)
+                ->unread()
+                ->count();
+        @endphp
         @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'admin')
         <a href="{{ route('dashboard') }}" class="hidden md:flex items-center gap-1 px-md py-sm border border-outline-variant rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-colors text-body-sm font-bold">
             <span class="material-symbols-outlined text-lg">swap_horiz</span>
             {{ __('messages.nav.admin_portal') }}
         </a>
         @endif
+        <a href="{{ route('resident.announcements') }}" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative" title="{{ app()->getLocale() === 'es' ? 'Avisos' : 'Announcements' }}">
+            <span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+            @if($unreadNotifications > 0)
+            <span class="absolute top-0 right-0 min-w-[18px] h-[18px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
+            @endif
+        </a>
         {{-- Language toggle --}}
         <a href="{{ route('lang.switch', app()->getLocale() === 'es' ? 'en' : 'es') }}" class="text-on-surface-variant hover:text-primary font-body-sm font-bold px-sm py-xs border border-outline-variant/50 rounded transition-colors">
             {{ app()->getLocale() === 'es' ? 'EN' : 'ES' }}
