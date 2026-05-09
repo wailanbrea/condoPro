@@ -129,15 +129,80 @@
             </span>
         </div>
     </div>
-    {{-- Building Notices Card --}}
+    {{-- Financial Summary Card --}}
     <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
         <div class="space-y-sm">
-            <span class="material-symbols-outlined text-secondary text-3xl">notifications_active</span>
-            <h4 class="font-body-lg text-body-lg font-bold">{{ __('messages.resident.building_notices') }}</h4>
-            <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'No hay avisos nuevos.' : 'No new notices.' }}</p>
+            <div class="flex items-center justify-between">
+                <span class="material-symbols-outlined {{ $financialSummary['total_owed'] > 0 ? 'text-error' : 'text-secondary' }} text-3xl">account_balance_wallet</span>
+                @if($financialSummary['days_until_due'] !== null)
+                    @if($financialSummary['days_until_due'] < 0)
+                        <span class="px-2 py-1 bg-error/10 text-error text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Vencido' : 'Overdue' }}</span>
+                    @elseif($financialSummary['days_until_due'] <= 7)
+                        <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">{{ $financialSummary['days_until_due'] }} {{ app()->getLocale() === 'es' ? 'días' : 'days' }}</span>
+                    @else
+                        <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
+                    @endif
+                @endif
+            </div>
+            <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Resumen de Cuenta' : 'Account Summary' }}</h4>
+            <div class="space-y-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Deuda actual:' : 'Current debt:' }}</span>
+                    <span class="font-mono-data font-bold {{ $financialSummary['total_owed'] > 0 ? 'text-error' : 'text-secondary' }}">RD${{ number_format($financialSummary['total_owed'], 2) }}</span>
+                </div>
+                @if($financialSummary['last_payment'])
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Último pago:' : 'Last payment:' }}</span>
+                    <span class="font-mono-data text-secondary">RD${{ number_format($financialSummary['last_payment'], 2) }}</span>
+                </div>
+                <div class="text-xs text-on-surface-variant">
+                    {{ $financialSummary['last_payment_date']?->format('d M, Y') }}
+                </div>
+                @endif
+            </div>
         </div>
-        <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="#">
-            {{ app()->getLocale() === 'es' ? 'Ver cartelera' : 'View board' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="{{ route('resident.invoices') }}">
+            {{ app()->getLocale() === 'es' ? 'Ver facturas' : 'View invoices' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+    </div>
+
+    {{-- Gas Consumption History Card --}}
+    <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+        <div class="space-y-sm">
+            <div class="flex items-center justify-between">
+                <span class="material-symbols-outlined text-amber-600 text-3xl">local_gas_station</span>
+                @if($gasTrend === 'up')
+                    <span class="px-2 py-1 bg-error/10 text-error text-xs font-bold rounded-full flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-sm">trending_up</span> {{ $gasTrendPercent }}%
+                    </span>
+                @elseif($gasTrend === 'down')
+                    <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-sm">trending_down</span> {{ abs($gasTrendPercent) }}%
+                    </span>
+                @else
+                    <span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-xs font-bold rounded-full flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-sm">trending_flat</span> {{ app()->getLocale() === 'es' ? 'Estable' : 'Stable' }}
+                    </span>
+                @endif
+            </div>
+            <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Historial de Gas' : 'Gas History' }}</h4>
+            <div class="space-y-xs">
+                @foreach($gasHistory as $index => $gas)
+                <div class="flex justify-between items-center {{ $index > 0 ? 'text-on-surface-variant' : '' }}">
+                    <span class="text-body-sm {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ ucfirst($gas['month_name']) }}</span>
+                    <div class="text-right">
+                        <span class="font-mono-data {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ number_format($gas['consumption'], 1) }} m³</span>
+                        <span class="text-xs text-on-surface-variant block">RD${{ number_format($gas['amount'], 0) }}</span>
+                    </div>
+                </div>
+                @endforeach
+                @if($gasHistory->isEmpty())
+                    <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Sin historial de gas' : 'No gas history' }}</p>
+                @endif
+            </div>
+        </div>
+        <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="{{ route('resident.history') }}">
+            {{ app()->getLocale() === 'es' ? 'Ver historial' : 'View history' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </a>
     </div>
 </section>

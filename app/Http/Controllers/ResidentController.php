@@ -137,6 +137,62 @@ class ResidentController extends Controller
                 ->get();
         }
 
+        // Get gas history for last 3 months
+        $gasHistory = collect();
+        if ($apartment) {
+            $gasHistory = GasReading::where('apartment_id', $apartment->id)
+                ->orderBy('billing_year', 'desc')
+                ->orderBy('billing_month', 'desc')
+                ->take(3)
+                ->get()
+                ->map(function($reading) {
+                    return [
+                        'month' => $reading->billing_month,
+                        'year' => $reading->billing_year,
+                        'month_name' => \Carbon\Carbon::create($reading->billing_year, $reading->billing_month, 1)->locale(app()->getLocale())->monthName,
+                        'consumption' => $reading->consumption_m3,
+                        'amount' => $reading->total_amount,
+                    ];
+                });
+        }
+
+        // Calculate gas trend
+        $gasTrend = 'stable';
+        $gasTrendPercent = 0;
+        if ($gasHistory->count() >= 2) {
+            $current = $gasHistory->first()['consumption'] ?? 0;
+            $previous = $gasHistory->skip(1)->first()['consumption'] ?? 0;
+            if ($previous > 0) {
+                $gasTrendPercent = round((($current - $previous) / $previous) * 100, 1);
+                if ($gasTrendPercent > 5) {
+                    $gasTrend = 'up';
+                } elseif ($gasTrendPercent < -5) {
+                    $gasTrend = 'down';
+                }
+            }
+        }
+
+        // Get financial summary
+        $financialSummary = [
+            'total_owed' => $totalOwed ?? 0,
+            'total_paid' => $totalPaid ?? 0,
+            'last_payment' => null,
+            'last_payment_date' => null,
+            'next_due_date' => $latestBill?->due_date,
+            'days_until_due' => $latestBill?->due_date ? now()->diffInDays($latestBill->due_date, false) : null,
+        ];
+
+        if ($apartment) {
+            $lastPayment = Payment::where('apartment_id', $apartment->id)
+                ->where('status', 'confirmed')
+                ->orderBy('payment_date', 'desc')
+                ->first();
+            if ($lastPayment) {
+                $financialSummary['last_payment'] = $lastPayment->amount;
+                $financialSummary['last_payment_date'] = $lastPayment->payment_date;
+            }
+        }
+
         return view('resident.index', compact(
             'user',
             'apartment',
@@ -149,7 +205,11 @@ class ResidentController extends Controller
             'pendingPayments',
             'condoFund',
             'recentNotifications',
-            'recentAnnouncements'
+            'recentAnnouncements',
+            'gasHistory',
+            'gasTrend',
+            'gasTrendPercent',
+            'financialSummary'
         ));
     }
 
