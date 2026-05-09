@@ -10,6 +10,7 @@ use App\Models\GasReading;
 use App\Models\MonthlyBill;
 use App\Models\Payment;
 use App\Models\Announcement;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -119,6 +120,23 @@ class ResidentController extends Controller
             $condoFund = $allTimeCollected - $allTimeExpenses + $allTimeAdjustments;
         }
 
+        // Get recent notifications for the dashboard
+        $recentNotifications = Notification::forUser($user->id)
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        // Get recent announcements
+        $recentAnnouncements = collect();
+        if ($condominiumId) {
+            $recentAnnouncements = Announcement::where('condominium_id', $condominiumId)
+                ->published()
+                ->orderBy('is_pinned', 'desc')
+                ->orderBy('published_at', 'desc')
+                ->take(2)
+                ->get();
+        }
+
         return view('resident.index', compact(
             'user',
             'apartment',
@@ -129,7 +147,9 @@ class ResidentController extends Controller
             'totalOwed',
             'totalPaid',
             'pendingPayments',
-            'condoFund'
+            'condoFund',
+            'recentNotifications',
+            'recentAnnouncements'
         ));
     }
 
