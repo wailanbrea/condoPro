@@ -89,6 +89,9 @@ Route::middleware(['auth', 'verified', 'role:resident,super_admin'])->prefix('re
     Route::get('/invoices/{bill}', [ResidentController::class, 'invoiceDetail'])->name('resident.invoices.show');
     Route::get('/history', [ResidentController::class, 'history'])->name('resident.history');
     Route::get('/announcements', [ResidentController::class, 'announcements'])->name('resident.announcements');
+    Route::get('/notifications', [ResidentController::class, 'notifications'])->name('resident.notifications');
+    Route::post('/notifications/{notification}/mark-read', [ResidentController::class, 'markNotificationRead'])->name('resident.notifications.markRead');
+    Route::post('/notifications/mark-all-read', [ResidentController::class, 'markAllNotificationsRead'])->name('resident.notifications.markAllRead');
 });
 
 Route::middleware('auth')->group(function () {

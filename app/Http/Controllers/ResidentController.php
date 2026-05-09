@@ -395,4 +395,42 @@ class ResidentController extends Controller
 
         return view('resident.announcements', compact('announcements', 'apartment'));
     }
+
+    public function notifications(): View
+    {
+        $user = Auth::user();
+
+        // Get unread IDs before marking as read
+        $unreadIds = \App\Models\Notification::forUser($user->id)
+            ->unread()
+            ->pluck('id')
+            ->toArray();
+
+        $notifications = \App\Models\Notification::forUser($user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        // Auto-mark all as read when viewing the page
+        if (count($unreadIds) > 0) {
+            \App\Models\Notification::whereIn('id', $unreadIds)->update(['read_at' => now()]);
+        }
+
+        return view('resident.notifications', compact('notifications', 'unreadIds'));
+    }
+
+    public function markNotificationRead(\App\Models\Notification $notification)
+    {
+        $notification->markAsRead();
+        return back();
+    }
+
+    public function markAllNotificationsRead()
+    {
+        $user = Auth::user();
+        \App\Models\Notification::forUser($user->id)
+            ->unread()
+            ->update(['read_at' => now()]);
+
+        return back()->with('success', __('messages.common.save') . '!');
+    }
 }

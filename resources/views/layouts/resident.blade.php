@@ -135,8 +135,8 @@
             {{ __('messages.nav.admin_portal') }}
         </a>
         @endif
-        <a href="{{ route('resident.announcements') }}" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative" title="{{ app()->getLocale() === 'es' ? 'Avisos' : 'Announcements' }}">
-            <span class="material-symbols-outlined" data-icon="campaign">campaign</span>
+        <a href="{{ route('resident.notifications') }}" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors relative" title="{{ app()->getLocale() === 'es' ? 'Notificaciones' : 'Notifications' }}">
+            <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
             @if($unreadNotifications > 0)
             <span class="absolute top-0 right-0 min-w-[18px] h-[18px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ $unreadNotifications > 99 ? '99+' : $unreadNotifications }}</span>
             @endif
