@@ -31,7 +31,10 @@
 
 <div class="space-y-md">
     @forelse($notifications as $notification)
-        <div class="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden {{ is_null($notification->read_at) ? 'ring-2 ring-primary/20 bg-primary/5' : '' }}">
+        @php
+            $wasUnread = in_array($notification->id, $unreadIds ?? []);
+        @endphp
+        <div class="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden {{ $wasUnread ? 'ring-2 ring-primary/20 bg-primary/5' : '' }}">
             <div class="p-lg flex items-start gap-md">
                 <div class="flex-shrink-0 mt-1">
                     @switch($notification->type)
@@ -56,12 +59,12 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-sm mb-xs">
-                        @if(is_null($notification->read_at))
+                        @if($wasUnread)
                             <span class="inline-flex items-center px-sm py-0.5 rounded bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wider">{{ app()->getLocale() === 'es' ? 'Nueva' : 'New' }}</span>
                         @endif
                         <span class="text-body-sm text-on-surface-variant">{{ $notification->created_at->format('d M, Y H:i') }}</span>
                     </div>
-                    <h3 class="font-title-lg text-on-surface {{ is_null($notification->read_at) ? 'font-bold' : '' }}">{{ $notification->title }}</h3>
+                    <h3 class="font-title-lg text-on-surface {{ $wasUnread ? 'font-bold' : '' }}">{{ $notification->title }}</h3>
                     <p class="text-body-md text-on-surface-variant mt-xs">{{ $notification->body }}</p>
                     @if($notification->condominium)
                         <span class="inline-flex items-center mt-sm px-sm py-0.5 rounded bg-surface-container-low text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider">
@@ -70,13 +73,8 @@
                     @endif
                 </div>
                 <div class="flex-shrink-0">
-                    @if(is_null($notification->read_at))
-                        <form action="{{ route('notifications.markRead', $notification) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="p-sm rounded-lg hover:bg-surface-container-low transition-colors text-on-surface-variant hover:text-primary" title="{{ app()->getLocale() === 'es' ? 'Marcar como leída' : 'Mark as read' }}">
-                                <span class="material-symbols-outlined">check</span>
-                            </button>
-                        </form>
+                    @if($wasUnread)
+                        <span class="material-symbols-outlined text-primary" title="{{ app()->getLocale() === 'es' ? 'Marcada como leída' : 'Marked as read' }}">mark_email_read</span>
                     @else
                         <span class="material-symbols-outlined text-on-surface-variant/40">done_all</span>
                     @endif

@@ -11,12 +11,25 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
+        
+        // Get unread IDs before marking as read (to show "New" badge on first view)
+        $unreadIds = Notification::forUser($user->id)
+            ->when($user->role === 'admin', fn($q) => $q->where('condominium_id', $user->condominium_id))
+            ->unread()
+            ->pluck('id')
+            ->toArray();
+        
         $notifications = Notification::forUser($user->id)
             ->when($user->role === 'admin', fn($q) => $q->where('condominium_id', $user->condominium_id))
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('admin.notifications.index', compact('notifications'));
+        // Mark all as read after fetching (counter will reset on next page load)
+        if (count($unreadIds) > 0) {
+            Notification::whereIn('id', $unreadIds)->update(['read_at' => now()]);
+        }
+
+        return view('admin.notifications.index', compact('notifications', 'unreadIds'));
     }
 
     public function markAsRead(Notification $notification)
