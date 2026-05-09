@@ -433,4 +433,30 @@ class ResidentController extends Controller
 
         return back()->with('success', __('messages.common.save') . '!');
     }
+
+    public function destroyNotification(\App\Models\Notification $notification)
+    {
+        // Verify the notification belongs to the current user
+        if ($notification->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $notification->delete();
+
+        return back()->with('success', app()->getLocale() === 'es' ? 'Notificación eliminada' : 'Notification deleted');
+    }
+
+    public function clearAllNotifications()
+    {
+        $user = Auth::user();
+
+        $count = \App\Models\Notification::forUser($user->id)->count();
+        \App\Models\Notification::forUser($user->id)->delete();
+
+        $message = app()->getLocale() === 'es'
+            ? "{$count} notificaciones eliminadas"
+            : "{$count} notifications deleted";
+
+        return back()->with('success', $message);
+    }
 }

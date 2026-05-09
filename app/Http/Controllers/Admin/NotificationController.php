@@ -57,4 +57,43 @@ class NotificationController extends Controller
             ->unread()
             ->count();
     }
+
+    public function destroy(Notification $notification)
+    {
+        $user = Auth::user();
+        
+        // Verify the notification belongs to the user
+        if ($notification->user_id !== $user->id && $notification->user_id !== null) {
+            abort(403, 'Unauthorized');
+        }
+        
+        // For admin, also check condominium
+        if ($user->role === 'admin' && $notification->condominium_id !== $user->condominium_id) {
+            abort(403, 'Unauthorized');
+        }
+        
+        $notification->delete();
+        
+        return back()->with('success', app()->getLocale() === 'es' ? 'Notificación eliminada' : 'Notification deleted');
+    }
+
+    public function clearAll()
+    {
+        $user = Auth::user();
+        
+        $query = Notification::forUser($user->id);
+        
+        if ($user->role === 'admin') {
+            $query->where('condominium_id', $user->condominium_id);
+        }
+        
+        $count = $query->count();
+        $query->delete();
+        
+        $message = app()->getLocale() === 'es' 
+            ? "{$count} notificaciones eliminadas" 
+            : "{$count} notifications deleted";
+        
+        return back()->with('success', $message);
+    }
 }

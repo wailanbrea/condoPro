@@ -13,13 +13,25 @@
         <h2 class="font-display-xl text-display-xl text-on-surface">{{ app()->getLocale() === 'es' ? 'Notificaciones' : 'Notifications' }}</h2>
         <p class="text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Centro de notificaciones' : 'Notification center' }}</p>
     </div>
-    <form action="{{ route('resident.notifications.markAllRead') }}" method="POST">
-        @csrf
-        <button type="submit" class="px-lg py-md bg-primary text-on-primary rounded-lg flex items-center gap-sm font-bold shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors">
-            <span class="material-symbols-outlined">done_all</span>
-            {{ app()->getLocale() === 'es' ? 'Marcar todas como leídas' : 'Mark all as read' }}
-        </button>
-    </form>
+    <div class="flex items-center gap-md">
+        @if($notifications->count() > 0)
+        <form action="{{ route('resident.notifications.clearAll') }}" method="POST" onsubmit="return confirm('{{ app()->getLocale() === 'es' ? '¿Eliminar todas las notificaciones?' : 'Delete all notifications?' }}')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="px-lg py-md bg-white border border-outline-variant text-on-surface-variant rounded-lg flex items-center gap-sm font-bold hover:bg-surface-container-low transition-colors">
+                <span class="material-symbols-outlined">delete_sweep</span>
+                {{ app()->getLocale() === 'es' ? 'Limpiar todo' : 'Clear all' }}
+            </button>
+        </form>
+        @endif
+        <form action="{{ route('resident.notifications.markAllRead') }}" method="POST">
+            @csrf
+            <button type="submit" class="px-lg py-md bg-primary text-on-primary rounded-lg flex items-center gap-sm font-bold shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors">
+                <span class="material-symbols-outlined">done_all</span>
+                {{ app()->getLocale() === 'es' ? 'Marcar todas como leídas' : 'Mark all as read' }}
+            </button>
+        </form>
+    </div>
 </div>
 
 @if(session('success'))
@@ -72,7 +84,14 @@
                         </span>
                     @endif
                 </div>
-                <div class="flex-shrink-0">
+                <div class="flex-shrink-0 flex items-center gap-sm">
+                    <form action="{{ route('resident.notifications.destroy', $notification) }}" method="POST" onsubmit="return confirm('{{ app()->getLocale() === 'es' ? '¿Eliminar esta notificación?' : 'Delete this notification?' }}')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="p-sm rounded-lg hover:bg-red-50 transition-colors text-on-surface-variant hover:text-error" title="{{ app()->getLocale() === 'es' ? 'Eliminar' : 'Delete' }}">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </form>
                     @if($wasUnread)
                         <span class="material-symbols-outlined text-primary" title="{{ app()->getLocale() === 'es' ? 'Marcada como leída' : 'Marked as read' }}">mark_email_read</span>
                     @else

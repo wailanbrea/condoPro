@@ -74,6 +74,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin'])->prefix('admin
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
     Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications/clear/all', [NotificationController::class, 'clearAll'])->name('notifications.clearAll');
 
     Route::get('/api/apartments-by-condominium/{condominium}', [ApiController::class, 'apartmentsByCondominium'])->name('api.apartments-by-condominium');
     Route::get('/api/gas-apartments-by-condominium/{condominium}', [ApiController::class, 'gasApartmentsByCondominium'])->name('api.gas-apartments-by-condominium');
@@ -92,6 +94,8 @@ Route::middleware(['auth', 'verified', 'role:resident,super_admin'])->prefix('re
     Route::get('/notifications', [ResidentController::class, 'notifications'])->name('resident.notifications');
     Route::post('/notifications/{notification}/mark-read', [ResidentController::class, 'markNotificationRead'])->name('resident.notifications.markRead');
     Route::post('/notifications/mark-all-read', [ResidentController::class, 'markAllNotificationsRead'])->name('resident.notifications.markAllRead');
+    Route::delete('/notifications/{notification}', [ResidentController::class, 'destroyNotification'])->name('resident.notifications.destroy');
+    Route::delete('/notifications/clear/all', [ResidentController::class, 'clearAllNotifications'])->name('resident.notifications.clearAll');
 });
 
 Route::middleware('auth')->group(function () {
