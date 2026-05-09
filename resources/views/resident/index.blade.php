@@ -71,9 +71,9 @@
 </section>
 
 {{-- Current Invoice Detail & Info Grid --}}
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
     {{-- Invoice Highlights --}}
-    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
         <div class="px-lg py-md bg-surface-container-low border-b border-outline-variant/20 flex justify-between items-center">
             <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
                 <span class="material-symbols-outlined text-primary">description</span>
@@ -106,71 +106,12 @@
     </div>
     {{-- Gas Consumption Card --}}
     <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
-        <div class="space-y-sm">
-            <span class="material-symbols-outlined text-primary text-3xl">insights</span>
-            <h4 class="font-body-lg text-body-lg font-bold">{{ __('messages.resident.gas_usage') }}</h4>
-            <p class="text-on-surface-variant text-body-sm">
-                @if($gasReading)
-                    {{ $gasReading->consumption_m3 }} m³ {{ app()->getLocale() === 'es' ? 'utilizados' : 'used' }}.
-                @else
-                    {{ app()->getLocale() === 'es' ? 'Sin datos de gas' : 'No gas data' }}
-                @endif
-            </p>
-        </div>
-        <div class="mt-lg">
-            @php
-                $gasPct = $gasReading ? min(($gasReading->consumption_m3 / 10) * 100, 100) : 0;
-            @endphp
-            <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-                <div class="bg-secondary h-full rounded-full" style="width: {{ $gasPct }}%"></div>
-            </div>
-            <span class="text-xs text-on-surface-variant mt-sm block">
-                {{ $gasReading ? number_format($gasReading->consumption_m3, 1) : '0' }} m³ {{ app()->getLocale() === 'es' ? 'utilizados' : 'used' }} {{ app()->getLocale() === 'es' ? 'de' : 'of' }} 10 m³ {{ app()->getLocale() === 'es' ? 'est.' : 'est.' }}
-            </span>
-        </div>
-    </div>
-    {{-- Financial Summary Card --}}
-    <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
-        <div class="space-y-sm">
+        <div class="space-y-md">
             <div class="flex items-center justify-between">
-                <span class="material-symbols-outlined {{ $financialSummary['total_owed'] > 0 ? 'text-error' : 'text-secondary' }} text-3xl">account_balance_wallet</span>
-                @if($financialSummary['days_until_due'] !== null)
-                    @if($financialSummary['days_until_due'] < 0)
-                        <span class="px-2 py-1 bg-error/10 text-error text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Vencido' : 'Overdue' }}</span>
-                    @elseif($financialSummary['days_until_due'] <= 7)
-                        <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">{{ $financialSummary['days_until_due'] }} {{ app()->getLocale() === 'es' ? 'días' : 'days' }}</span>
-                    @else
-                        <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
-                    @endif
-                @endif
-            </div>
-            <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Resumen de Cuenta' : 'Account Summary' }}</h4>
-            <div class="space-y-xs">
-                <div class="flex justify-between items-center">
-                    <span class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Deuda actual:' : 'Current debt:' }}</span>
-                    <span class="font-mono-data font-bold {{ $financialSummary['total_owed'] > 0 ? 'text-error' : 'text-secondary' }}">RD${{ number_format($financialSummary['total_owed'], 2) }}</span>
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-amber-600 text-3xl">local_gas_station</span>
+                    <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Consumo de Gas' : 'Gas Consumption' }}</h4>
                 </div>
-                @if($financialSummary['last_payment'])
-                <div class="flex justify-between items-center">
-                    <span class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Último pago:' : 'Last payment:' }}</span>
-                    <span class="font-mono-data text-secondary">RD${{ number_format($financialSummary['last_payment'], 2) }}</span>
-                </div>
-                <div class="text-xs text-on-surface-variant">
-                    {{ $financialSummary['last_payment_date']?->format('d M, Y') }}
-                </div>
-                @endif
-            </div>
-        </div>
-        <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="{{ route('resident.invoices') }}">
-            {{ app()->getLocale() === 'es' ? 'Ver facturas' : 'View invoices' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
-        </a>
-    </div>
-
-    {{-- Gas Consumption History Card --}}
-    <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
-        <div class="space-y-sm">
-            <div class="flex items-center justify-between">
-                <span class="material-symbols-outlined text-amber-600 text-3xl">local_gas_station</span>
                 @if($gasTrend === 'up')
                     <span class="px-2 py-1 bg-error/10 text-error text-xs font-bold rounded-full flex items-center gap-xs">
                         <span class="material-symbols-outlined text-sm">trending_up</span> {{ $gasTrendPercent }}%
@@ -185,24 +126,104 @@
                     </span>
                 @endif
             </div>
-            <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Historial de Gas' : 'Gas History' }}</h4>
-            <div class="space-y-xs">
-                @foreach($gasHistory as $index => $gas)
-                <div class="flex justify-between items-center {{ $index > 0 ? 'text-on-surface-variant' : '' }}">
-                    <span class="text-body-sm {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ ucfirst($gas['month_name']) }}</span>
-                    <div class="text-right">
-                        <span class="font-mono-data {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ number_format($gas['consumption'], 1) }} m³</span>
-                        <span class="text-xs text-on-surface-variant block">RD${{ number_format($gas['amount'], 0) }}</span>
+            
+            {{-- Current month consumption --}}
+            <div>
+                @if($gasReading)
+                    <div class="flex justify-between items-center mb-sm">
+                        <span class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Mes actual:' : 'Current month:' }}</span>
+                        <span class="font-mono-data font-bold text-on-surface">{{ number_format($gasReading->consumption_m3, 1) }} m³</span>
                     </div>
-                </div>
-                @endforeach
-                @if($gasHistory->isEmpty())
-                    <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Sin historial de gas' : 'No gas history' }}</p>
+                    @php
+                        $gasPct = min(($gasReading->consumption_m3 / 10) * 100, 100);
+                    @endphp
+                    <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                        <div class="bg-secondary h-full rounded-full" style="width: {{ $gasPct }}%"></div>
+                    </div>
+                    <span class="text-xs text-on-surface-variant mt-xs block">
+                        {{ app()->getLocale() === 'es' ? 'De' : 'Of' }} 10 m³ {{ app()->getLocale() === 'es' ? 'estimados' : 'estimated' }}
+                    </span>
+                @else
+                    <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Sin datos de gas' : 'No gas data' }}</p>
                 @endif
+            </div>
+            
+            {{-- History --}}
+            <div class="pt-md border-t border-outline-variant/20">
+                <p class="text-label-caps text-label-caps text-on-surface-variant mb-sm">{{ app()->getLocale() === 'es' ? 'Últimos meses' : 'Recent months' }}</p>
+                <div class="space-y-xs">
+                    @foreach($gasHistory->take(3) as $index => $gas)
+                    <div class="flex justify-between items-center {{ $index > 0 ? 'text-on-surface-variant' : '' }}">
+                        <span class="text-body-sm {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ ucfirst($gas['month_name']) }}</span>
+                        <div class="text-right">
+                            <span class="font-mono-data {{ $index === 0 ? 'font-bold text-on-surface' : '' }}">{{ number_format($gas['consumption'], 1) }} m³</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
             </div>
         </div>
         <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="{{ route('resident.history') }}">
             {{ app()->getLocale() === 'es' ? 'Ver historial' : 'View history' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+    </div>
+
+    {{-- Payment Summary Card --}}
+    <div class="bg-white rounded-xl p-lg shadow-sm border border-outline-variant/30 flex flex-col justify-between">
+        <div class="space-y-sm">
+            <div class="flex items-center justify-between">
+                <span class="material-symbols-outlined text-primary text-3xl">payments</span>
+                @if($nextPayment)
+                    @php
+                        $daysUntil = now()->diffInDays($nextPayment->due_date, false);
+                    @endphp
+                    @if($daysUntil < 0)
+                        <span class="px-2 py-1 bg-error/10 text-error text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Vencido' : 'Overdue' }}</span>
+                    @elseif($daysUntil <= 7)
+                        <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">{{ $daysUntil }} {{ app()->getLocale() === 'es' ? 'días' : 'days' }}</span>
+                    @else
+                        <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
+                    @endif
+                @else
+                    <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
+                @endif
+            </div>
+            <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Resumen de Pago' : 'Payment Summary' }}</h4>
+            
+            <div class="space-y-md">
+                {{-- Next Payment --}}
+                <div class="bg-surface-container-low rounded-lg p-md">
+                    <p class="text-label-caps text-label-caps text-on-surface-variant mb-xs">{{ app()->getLocale() === 'es' ? 'Próximo pago' : 'Next payment' }}</p>
+                    @if($nextPayment)
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-mono-data text-headline-md text-on-surface font-bold">RD${{ number_format($nextPayment->total - $nextPayment->payments_applied, 2) }}</p>
+                                <p class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Vence:' : 'Due:' }} {{ $nextPayment->due_date->format('d M, Y') }}</p>
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'No hay pagos pendientes' : 'No pending payments' }}</p>
+                    @endif
+                </div>
+                
+                {{-- Quick stats --}}
+                <div class="grid grid-cols-2 gap-sm">
+                    <div>
+                        <p class="text-xs text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Deuda total' : 'Total debt' }}</p>
+                        <p class="font-mono-data font-bold {{ $financialSummary['total_owed'] > 0 ? 'text-error' : 'text-secondary' }}">RD${{ number_format($financialSummary['total_owed'], 0) }}</p>
+                    </div>
+                    @if($financialSummary['last_payment'])
+                    <div>
+                        <p class="text-xs text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Último pago' : 'Last payment' }}</p>
+                        <p class="font-mono-data text-secondary">RD${{ number_format($financialSummary['last_payment'], 0) }}</p>
+                        <p class="text-xs text-on-surface-variant">{{ $financialSummary['last_payment_date']?->format('d M') }}</p>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <a class="text-primary font-bold text-body-sm flex items-center gap-xs mt-lg hover:underline" href="{{ route('resident.invoices') }}">
+            {{ app()->getLocale() === 'es' ? 'Ver facturas' : 'View invoices' }} <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </a>
     </div>
 </section>

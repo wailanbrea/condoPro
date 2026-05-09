@@ -182,7 +182,14 @@ class ResidentController extends Controller
             'days_until_due' => $latestBill?->due_date ? now()->diffInDays($latestBill->due_date, false) : null,
         ];
 
+        // Get next pending payment (next bill to pay)
+        $nextPayment = null;
         if ($apartment) {
+            $nextPayment = MonthlyBill::where('apartment_id', $apartment->id)
+                ->whereIn('status', ['pending', 'partial', 'overdue'])
+                ->orderBy('due_date', 'asc')
+                ->first();
+                
             $lastPayment = Payment::where('apartment_id', $apartment->id)
                 ->where('status', 'confirmed')
                 ->orderBy('payment_date', 'desc')
@@ -209,7 +216,8 @@ class ResidentController extends Controller
             'gasHistory',
             'gasTrend',
             'gasTrendPercent',
-            'financialSummary'
+            'financialSummary',
+            'nextPayment'
         ));
     }
 
