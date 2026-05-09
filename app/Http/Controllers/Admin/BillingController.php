@@ -11,6 +11,7 @@ use App\Models\ExtraChargeInstallment;
 use App\Models\GasReading;
 use App\Models\MonthlyBill;
 use App\Services\AuditLogService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -194,6 +195,25 @@ class BillingController extends Controller
 
         return redirect()->route('billing.index')
             ->with('success', __('messages.common.delete') . '!');
+    }
+
+    public function downloadPdf(MonthlyBill $billing)
+    {
+        $this->authorizeCondo($billing->condominium_id);
+
+        $billing->load('apartment', 'condominium', 'billItems', 'payments');
+
+        $data = [
+            'bill' => $billing,
+            'condominium' => $billing->condominium,
+            'apartment' => $billing->apartment,
+        ];
+
+        $fileName = 'factura_' . $billing->apartment->number . '_' .
+            str_pad($billing->billing_month, 2, '0', STR_PAD_LEFT) . '_' .
+            $billing->billing_year . '.pdf';
+
+        return Pdf::loadView('admin.billing.pdf', $data)->stream($fileName);
     }
 
     private function authorizeCondo(int $condominiumId): void

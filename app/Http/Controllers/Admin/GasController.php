@@ -105,7 +105,7 @@ class GasController extends Controller
         $this->checkDuplicate($validated);
 
         if ($validated['reading_final'] < $validated['reading_initial']) {
-            return back()->withErrors(['reading_final' => 'La lectura actual no puede ser menor que la lectura anterior.'])->withInput();
+            return back()->withErrors(['reading_final' => __('messages.gas.reading_final_less')])->withInput();
         }
 
         $this->calculateGas($validated);
@@ -117,7 +117,7 @@ class GasController extends Controller
         $this->auditLog->log('gas_reading_created', 'gas', $gasReading->id, null, $gasReading->toArray());
 
         return redirect()->route('gas.index')
-            ->with('success', 'Lectura de gas registrada correctamente.');
+            ->with('success', __('messages.gas.reading_created'));
     }
 
     public function show(GasReading $gas): View
@@ -135,7 +135,7 @@ class GasController extends Controller
 
         if ($gas->billed) {
             return redirect()->route('gas.index')
-                ->with('error', 'No se puede editar una lectura que ya fue facturada.');
+                ->with('error', __('messages.gas.billed_cannot_edit'));
         }
 
         $condominiums = $this->getCondominiumsForSelect();
@@ -150,7 +150,7 @@ class GasController extends Controller
 
         if ($gas->billed) {
             return redirect()->route('gas.index')
-                ->with('error', 'No se puede editar una lectura que ya fue facturada.');
+                ->with('error', __('messages.gas.billed_cannot_edit'));
         }
 
         $validated = $this->validateGasReading($request);
@@ -158,7 +158,7 @@ class GasController extends Controller
         $this->authorizeCondo($validated['condominium_id']);
 
         if ($validated['reading_final'] < $validated['reading_initial']) {
-            return back()->withErrors(['reading_final' => 'La lectura actual no puede ser menor que la lectura anterior.'])->withInput();
+            return back()->withErrors(['reading_final' => __('messages.gas.reading_final_less')])->withInput();
         }
 
         $oldValues = $gas->toArray();
@@ -170,7 +170,7 @@ class GasController extends Controller
         $this->auditLog->log('gas_reading_updated', 'gas', $gas->id, $oldValues, $gas->fresh()->toArray());
 
         return redirect()->route('gas.show', $gas)
-            ->with('success', 'Lectura actualizada correctamente.');
+            ->with('success', __('messages.gas.reading_updated'));
     }
 
     public function destroy(GasReading $gas)
@@ -179,7 +179,7 @@ class GasController extends Controller
 
         if ($gas->billed) {
             return redirect()->route('gas.index')
-                ->with('error', 'No se puede eliminar una lectura que ya fue facturada.');
+                ->with('error', __('messages.gas.billed_cannot_delete'));
         }
 
         $oldValues = $gas->toArray();
@@ -188,7 +188,7 @@ class GasController extends Controller
         $this->auditLog->log('gas_reading_deleted', 'gas', $gas->id, $oldValues, null);
 
         return redirect()->route('gas.index')
-            ->with('success', 'Lectura eliminada correctamente.');
+            ->with('success', __('messages.gas.reading_deleted'));
     }
 
     private function validateGasReading(Request $request): array
@@ -217,7 +217,7 @@ class GasController extends Controller
             ->exists();
 
         if ($exists) {
-            abort(422, 'Ya existe una lectura de gas para este apartamento en el período seleccionado.');
+            abort(422, __('messages.gas.duplicate_reading'));
         }
     }
 

@@ -69,9 +69,9 @@ class CondominiumFundController extends Controller
         $runningBalance = $prevCollected - $prevExpenses + $prevAdjustments;
 
         $monthNames = [
-            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
-            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
-            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre',
+            1 => __('messages.common.january'), 2 => __('messages.common.february'), 3 => __('messages.common.march'), 4 => __('messages.common.april'),
+            5 => __('messages.common.may'), 6 => __('messages.common.june'), 7 => __('messages.common.july'), 8 => __('messages.common.august'),
+            9 => __('messages.common.september'), 10 => __('messages.common.october'), 11 => __('messages.common.november'), 12 => __('messages.common.december'),
         ];
 
         for ($m = 1; $m <= 12; $m++) {
@@ -144,7 +144,7 @@ class CondominiumFundController extends Controller
             'movement_type' => 'adjustment',
             'category' => 'correction',
             'amount' => -abs($validated['amount']),
-            'description' => 'Retiro de fondo: ' . $validated['description'],
+            'description' => __('messages.fund.withdrawal_prefix') . ' ' . $validated['description'],
             'movement_date' => $validated['movement_date'],
             'month' => (int) date('n', strtotime($validated['movement_date'])),
             'year' => (int) date('Y', strtotime($validated['movement_date'])),
@@ -156,8 +156,6 @@ class CondominiumFundController extends Controller
             : 'resident.condominium-fund';
 
         return redirect()->route($route)
-            ->with('success', app()->getLocale() === 'es'
-                ? 'Retiro de fondo registrado correctamente'
-                : 'Fund withdrawal registered successfully');
+            ->with('success', __('messages.fund.withdrawal_success'));
     }
 }

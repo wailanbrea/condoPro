@@ -135,6 +135,7 @@
         ['route' => 'payments.index', 'icon' => 'payments', 'label' => __('messages.nav.payments')],
         ['route' => 'announcements.index', 'icon' => 'campaign', 'label' => app()->getLocale() === 'es' ? 'Avisos' : 'Announcements'],
         ['route' => 'expenses.index', 'icon' => 'account_balance_wallet', 'label' => __('messages.nav.expenses')],
+        ['route' => 'expense-categories.index', 'icon' => 'category', 'label' => app()->getLocale() === 'es' ? 'Categorías' : 'Categories'],
         ['route' => 'financial-reports.index', 'icon' => 'account_balance', 'label' => 'Informe Financiero'],
         ['route' => 'condominium-fund.history', 'icon' => 'savings', 'label' => app()->getLocale() === 'es' ? 'Fondo del Condominio' : 'Condominium Fund'],
         ['route' => 'reports.index', 'icon' => 'analytics', 'label' => __('messages.nav.reports')],

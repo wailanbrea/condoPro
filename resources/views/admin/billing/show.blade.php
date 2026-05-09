@@ -16,6 +16,10 @@
         <p class="text-on-surface-variant">{{ $billing->apartment->number ?? '—' }} — {{ \Carbon\Carbon::create()->month($billing->billing_month)->translatedFormat('F') }} {{ $billing->billing_year }}</p>
     </div>
     <div class="flex gap-md">
+        <a href="{{ route('billing.pdf', $billing) }}" target="_blank" class="px-lg py-2 bg-secondary text-on-secondary rounded-lg flex items-center gap-2 hover:brightness-110 transition-all">
+            <span class="material-symbols-outlined" data-icon="picture_as_pdf">picture_as_pdf</span>
+            PDF
+        </a>
         <a href="{{ route('billing.edit', $billing) }}" class="px-lg py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:brightness-110 transition-all">
             <span class="material-symbols-outlined" data-icon="edit">edit</span>
             {{ __('messages.common.edit') }}

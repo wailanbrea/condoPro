@@ -243,4 +243,39 @@ return [
         'expense_movement' => 'Egreso',
         'adjustment_movement' => 'Ajuste',
     ],
+
+    'gas' => [
+        'reading_created' => 'Lectura de gas registrada correctamente.',
+        'reading_updated' => 'Lectura actualizada correctamente.',
+        'reading_deleted' => 'Lectura eliminada correctamente.',
+        'billed_cannot_edit' => 'No se puede editar una lectura que ya fue facturada.',
+        'billed_cannot_delete' => 'No se puede eliminar una lectura que ya fue facturada.',
+        'reading_final_less' => 'La lectura actual no puede ser menor que la lectura anterior.',
+        'duplicate_reading' => 'Ya existe una lectura de gas para este apartamento en el período seleccionado.',
+    ],
+
+    'fund' => [
+        'withdrawal_prefix' => 'Retiro de fondo:',
+        'withdrawal_success' => 'Retiro de fondo registrado correctamente.',
+    ],
+
+    'expense_categories' => [
+        'has_expenses' => 'No se puede eliminar una categoría con egresos asociados.',
+    ],
+
+    'common' => [
+        'january' => 'Enero',
+        'february' => 'Febrero',
+        'march' => 'Marzo',
+        'april' => 'Abril',
+        'may' => 'Mayo',
+        'june' => 'Junio',
+        'july' => 'Julio',
+        'august' => 'Agosto',
+        'september' => 'Septiembre',
+        'october' => 'Octubre',
+        'november' => 'Noviembre',
+        'december' => 'Diciembre',
+        'no_condominiums' => 'No hay condominios registrados.',
+    ],
 ];

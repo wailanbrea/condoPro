@@ -296,7 +296,7 @@
                 <span class="material-symbols-outlined" data-icon="close">close</span>
             </button>
         </div>
-        <form action="{{ route('financial-reports.store') }}" method="POST" id="generateForm">
+        <form action="{{ route('financial-reports.generate') }}" method="POST" id="generateForm">
             @csrf
             <input type="hidden" name="condominium_id" value="{{ $selectedCondo?->id ?? '' }}">
             <input type="hidden" name="month" value="{{ $month }}">

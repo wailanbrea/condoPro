@@ -126,6 +126,19 @@ return [
         'details' => 'Details',
         'total' => 'Total',
         'subtotal' => 'Subtotal',
+        'january' => 'January',
+        'february' => 'February',
+        'march' => 'March',
+        'april' => 'April',
+        'may' => 'May',
+        'june' => 'June',
+        'july' => 'July',
+        'august' => 'August',
+        'september' => 'September',
+        'october' => 'October',
+        'november' => 'November',
+        'december' => 'December',
+        'no_condominiums' => 'No condominiums registered.',
     ],
 
     'condominiums' => [
@@ -219,5 +232,47 @@ return [
         'concept_gas' => 'Gas Consumption',
         'concept_extra_charge' => 'Extra Charge',
         'already_exists' => 'A bill for this apartment and period already exists.',
+    ],
+
+    'financial' => [
+        'title' => 'Financial Report',
+        'list' => 'Financial Reports',
+        'income' => 'Income',
+        'expenses' => 'Expenses',
+        'balance' => 'Balance',
+        'initial_balance' => 'Initial Balance',
+        'final_balance' => 'Final Balance',
+        'total_income' => 'Total Income',
+        'total_expenses' => 'Total Expenses',
+        'special_payments' => 'Special Payments',
+        'maintenance' => 'Maintenance',
+        'gas' => 'Gas',
+        'extra_charges' => 'Extra Charges / Arrears',
+        'pending' => 'Pending',
+        'generate' => 'Generate Report',
+        'close' => 'Close Report',
+        'movement' => 'Movement',
+        'income_movement' => 'Income',
+        'expense_movement' => 'Expense',
+        'adjustment_movement' => 'Adjustment',
+    ],
+
+    'gas' => [
+        'reading_created' => 'Gas reading registered successfully.',
+        'reading_updated' => 'Gas reading updated successfully.',
+        'reading_deleted' => 'Gas reading deleted successfully.',
+        'billed_cannot_edit' => 'Cannot edit a reading that has already been billed.',
+        'billed_cannot_delete' => 'Cannot delete a reading that has already been billed.',
+        'reading_final_less' => 'The current reading cannot be less than the previous reading.',
+        'duplicate_reading' => 'A gas reading already exists for this apartment in the selected period.',
+    ],
+
+    'fund' => [
+        'withdrawal_prefix' => 'Fund withdrawal:',
+        'withdrawal_success' => 'Fund withdrawal registered successfully.',
+    ],
+
+    'expense_categories' => [
+        'has_expenses' => 'Cannot delete a category with associated expenses.',
     ],
 ];

@@ -262,7 +262,7 @@ class ReportController extends Controller
             if ($first) {
                 $condominiumId = $first->id;
             } else {
-                abort(404, 'No hay condominios registrados.');
+                abort(404, __('messages.common.no_condominiums'));
             }
         }
 

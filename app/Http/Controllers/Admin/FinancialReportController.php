@@ -94,7 +94,7 @@ class FinancialReportController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['month' => 'Ya existe un informe financiero para este período.'])->withInput();
+            return back()->withErrors(['month' => __('messages.financial.report_exists')])->withInput();
         }
 
         $report = new MonthlyFinancialReport($validated);
@@ -107,7 +107,7 @@ class FinancialReportController extends Controller
         $this->auditLog->log('financial_report_generated', 'financial_reports', $report->id, null, $report->toArray());
 
         return redirect()->route('financial-reports.show', $report)
-            ->with('success', 'Informe financiero generado correctamente.');
+            ->with('success', __('messages.financial.report_generated'));
     }
 
     public function close(MonthlyFinancialReport $financialReport)
@@ -115,7 +115,7 @@ class FinancialReportController extends Controller
         $this->authorizeCondo($financialReport->condominium_id);
 
         if ($financialReport->status === 'closed') {
-            return back()->with('error', 'Este informe ya está cerrado.');
+            return back()->with('error', __('messages.financial.report_already_closed'));
         }
 
         $financialReport->update([
@@ -126,7 +126,7 @@ class FinancialReportController extends Controller
 
         $this->auditLog->log('financial_report_closed', 'financial_reports', $financialReport->id);
 
-        return back()->with('success', 'Informe financiero cerrado correctamente.');
+        return back()->with('success', __('messages.financial.report_closed'));
     }
 
     public function storeMovement(Request $request)
@@ -150,7 +150,7 @@ class FinancialReportController extends Controller
 
         $this->auditLog->log('financial_movement_created', 'financial_movements', $movement->id, null, $movement->toArray());
 
-        return back()->with('success', 'Movimiento financiero registrado correctamente.');
+        return back()->with('success', __('messages.financial.movement_created'));
     }
 
     public function destroyMovement(FinancialMovement $movement)
@@ -162,7 +162,7 @@ class FinancialReportController extends Controller
 
         $this->auditLog->log('financial_movement_deleted', 'financial_movements', $movement->id, $oldValues, null);
 
-        return back()->with('success', 'Movimiento financiero eliminado.');
+        return back()->with('success', __('messages.financial.movement_deleted'));
     }
 
     private function buildFinancialData(int $condominiumId, int $month, int $year): array
