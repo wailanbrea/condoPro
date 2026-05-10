@@ -33,6 +33,11 @@
                         <span class="material-symbols-outlined text-lg">checklist</span>
                         {{ app()->getLocale() === 'es' ? 'Varias facturas' : 'Multiple bills' }}
                     </button>
+                    <button type="button" id="modeAdvance" onclick="setMode('advance')"
+                        class="flex-1 flex items-center justify-center gap-sm px-md py-sm font-body-md transition-colors bg-white text-on-surface-variant">
+                        <span class="material-symbols-outlined text-lg">schedule</span>
+                        {{ app()->getLocale() === 'es' ? 'Pago por adelantado' : 'Advance payment' }}
+                    </button>
                 </div>
             </div>
 
@@ -115,6 +120,32 @@
                         </div>
                     </div>
                 @endif
+            </div>
+
+            {{-- Advance Payment --}}
+            <div id="advanceSelect" class="hidden">
+                <div class="bg-primary/5 border border-primary/20 rounded-lg p-md">
+                    <div class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-2xl flex-shrink-0">schedule</span>
+                        <div>
+                            <h4 class="font-title-lg text-on-surface">{{ app()->getLocale() === 'es' ? 'Pago por adelantado' : 'Advance Payment' }}</h4>
+                            <p class="text-body-sm text-on-surface-variant mt-xs">
+                                {{ app()->getLocale() === 'es' ? 'Realiza un pago antes de que se genere la factura. Este monto se aplicará automáticamente a tu próxima factura cuando sea generada.' : 'Make a payment before the bill is generated. This amount will be automatically applied to your next bill when it is generated.' }}
+                            </p>
+                            @if($nextBillPreview ?? false)
+                            <div class="mt-sm p-sm bg-white rounded border border-outline-variant/30">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Próxima factura esperada' : 'Next expected bill' }}</span>
+                                    <span class="font-mono-data font-bold text-primary">RD${{ number_format($nextBillPreview['total'], 2) }}</span>
+                                </div>
+                                <div class="text-xs text-on-surface-variant mt-xs">
+                                    {{ $nextBillPreview['billing_date']->format('d M Y') }} · {{ $nextBillPreview['days_until'] }} {{ app()->getLocale() === 'es' ? 'días' : 'days' }}
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Amount --}}
@@ -210,28 +241,37 @@
         currentMode = mode;
         var singleEl = document.getElementById('singleSelect');
         var multiEl = document.getElementById('multiSelect');
+        var advanceEl = document.getElementById('advanceSelect');
         var singleBtn = document.getElementById('modeSingle');
         var multiBtn = document.getElementById('modeMultiple');
+        var advanceBtn = document.getElementById('modeAdvance');
+
+        // Hide all panels
+        [singleEl, multiEl, advanceEl].forEach(function(el) { if(el) el.classList.add('hidden'); });
+        // Reset all buttons
+        [singleBtn, multiBtn, advanceBtn].forEach(function(btn) { 
+            if(btn) { btn.classList.remove('bg-primary', 'text-white'); btn.classList.add('bg-white', 'text-on-surface-variant'); }
+        });
 
         if (mode === 'single') {
             singleEl.classList.remove('hidden');
-            multiEl.classList.add('hidden');
             singleBtn.classList.add('bg-primary', 'text-white');
             singleBtn.classList.remove('bg-white', 'text-on-surface-variant');
-            multiBtn.classList.remove('bg-primary', 'text-white');
-            multiBtn.classList.add('bg-white', 'text-on-surface-variant');
             document.getElementById('amount').value = '';
             document.getElementById('amountHint').classList.add('hidden');
             updateSingleAmount();
-        } else {
-            singleEl.classList.add('hidden');
+        } else if (mode === 'multiple') {
             multiEl.classList.remove('hidden');
             multiBtn.classList.add('bg-primary', 'text-white');
             multiBtn.classList.remove('bg-white', 'text-on-surface-variant');
-            singleBtn.classList.remove('bg-primary', 'text-white');
-            singleBtn.classList.add('bg-white', 'text-on-surface-variant');
             document.getElementById('amount').value = '';
             updateTotalAmount();
+        } else if (mode === 'advance') {
+            advanceEl.classList.remove('hidden');
+            advanceBtn.classList.add('bg-primary', 'text-white');
+            advanceBtn.classList.remove('bg-white', 'text-on-surface-variant');
+            document.getElementById('amount').value = '';
+            document.getElementById('amountHint').classList.add('hidden');
         }
     }
 

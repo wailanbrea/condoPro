@@ -11,6 +11,8 @@ use App\Models\MonthlyBill;
 use App\Models\Payment;
 use App\Models\Announcement;
 use App\Models\Notification;
+use App\Models\ExtraChargeInstallment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -201,61 +203,7 @@ class ResidentController extends Controller
         }
 
         // Calculate next expected bill (future billing preview)
-        $nextBillingDate = \Carbon\Carbon::create(now()->year, now()->month, 30);
-        if (now()->day > 30 || now()->day == 30) {
-            $nextBillingDate->addMonth();
-        }
-        // Handle months with less than 30 days
-        if ($nextBillingDate->day < 30) {
-            $nextBillingDate = $nextBillingDate->endOfMonth();
-        }
-        
-        $nextBillingMonth = $nextBillingDate->month;
-        $nextBillingYear = $nextBillingDate->year;
-        $daysUntilBilling = now()->diffInDays($nextBillingDate, false);
-        
-        $nextBillPreview = null;
-        if ($apartment) {
-            // Check if a bill already exists for that period
-            $existingBill = MonthlyBill::where('apartment_id', $apartment->id)
-                ->where('billing_month', $nextBillingMonth)
-                ->where('billing_year', $nextBillingYear)
-                ->first();
-            
-            if (!$existingBill) {
-                // Calculate expected next bill
-                $maintenance = $apartment->maintenance_fee;
-                
-                // Get pending extra charge installments for next period
-                $pendingInstallments = \App\Models\ExtraChargeInstallment::with('extraCharge')
-                    ->where('apartment_id', $apartment->id)
-                    ->where('billing_month', $nextBillingMonth)
-                    ->where('billing_year', $nextBillingYear)
-                    ->where('status', 'pending')
-                    ->get();
-                
-                $extraCharges = $pendingInstallments->sum('amount');
-                $extraDetails = $pendingInstallments->map(function($i) {
-                    return [
-                        'title' => $i->extraCharge->title ?? 'Cargo extra',
-                        'amount' => $i->amount,
-                    ];
-                });
-                
-                $totalExpected = $maintenance + $extraCharges;
-                
-                $nextBillPreview = [
-                    'maintenance' => $maintenance,
-                    'extra_charges' => $extraCharges,
-                    'extra_details' => $extraDetails,
-                    'total' => $totalExpected,
-                    'billing_date' => $nextBillingDate,
-                    'billing_month' => $nextBillingMonth,
-                    'billing_year' => $nextBillingYear,
-                    'days_until' => $daysUntilBilling,
-                ];
-            }
-        }
+        $nextBillPreview = $this->getNextBillPreview($apartment);
 
         return view('resident.index', compact(
             'user',
@@ -300,7 +248,10 @@ class ResidentController extends Controller
                 ->get();
         }
 
-        return view('resident.vouchers.upload', compact('bills', 'bankAccounts'));
+        // Calculate next bill preview for advance payment
+        $nextBillPreview = $this->getNextBillPreview($apartment);
+
+        return view('resident.vouchers.upload', compact('bills', 'bankAccounts', 'nextBillPreview'));
     }
 
     public function storeVoucher(Request $request)
@@ -516,5 +467,55 @@ class ResidentController extends Controller
             : "{$count} notifications deleted";
 
         return back()->with('success', $message);
+    }
+
+    private function getNextBillPreview($apartment)
+    {
+        if (!$apartment) return null;
+
+        $nextBillingDate = \Carbon\Carbon::create(now()->year, now()->month, 30);
+        if (now()->day > 30 || now()->day == 30) {
+            $nextBillingDate->addMonth();
+        }
+        if ($nextBillingDate->day < 30) {
+            $nextBillingDate = $nextBillingDate->endOfMonth();
+        }
+
+        $nextBillingMonth = $nextBillingDate->month;
+        $nextBillingYear = $nextBillingDate->year;
+        $daysUntilBilling = now()->diffInDays($nextBillingDate, false);
+
+        $existingBill = MonthlyBill::where('apartment_id', $apartment->id)
+            ->where('billing_month', $nextBillingMonth)
+            ->where('billing_year', $nextBillingYear)
+            ->first();
+
+        if ($existingBill) return null;
+
+        $maintenance = $apartment->maintenance_fee;
+
+        $pendingInstallments = \App\Models\ExtraChargeInstallment::with('extraCharge')
+            ->where('apartment_id', $apartment->id)
+            ->where('billing_month', $nextBillingMonth)
+            ->where('billing_year', $nextBillingYear)
+            ->where('status', 'pending')
+            ->get();
+
+        $extraCharges = $pendingInstallments->sum('amount');
+        $extraDetails = $pendingInstallments->map(function($i) {
+            return [
+                'title' => $i->extraCharge->title ?? 'Cargo extra',
+                'amount' => $i->amount,
+            ];
+        });
+
+        return [
+            'maintenance' => $maintenance,
+            'extra_charges' => $extraCharges,
+            'extra_details' => $extraDetails,
+            'total' => $maintenance + $extraCharges,
+            'billing_date' => $nextBillingDate,
+            'days_until' => $daysUntilBilling,
+        ];
     }
 }
