@@ -109,6 +109,7 @@ return [
         'create' => 'Create',
         'search' => 'Search...',
         'apartment' => 'Apartment',
+        'condominium' => 'Condominium',
         'resident' => 'Resident',
         'amount' => 'Amount',
         'date' => 'Date',

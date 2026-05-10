@@ -86,7 +86,7 @@
 {{-- Summary Cards --}}
 <div class="grid grid-cols-2 md:grid-cols-5 gap-md mb-lg">
     <div class="bg-white rounded-xl p-md shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 border-primary">
-        <p class="text-label-caps text-on-surface-variant font-label-caps">{{ __('messages.common.condominium') ?? 'Usuarios' }}</p>
+        <p class="text-label-caps text-on-surface-variant font-label-caps">{{ __('messages.common.resident') ?? 'Usuarios' }}</p>
         <p class="font-headline-lg text-headline-lg text-on-surface">{{ $summary->users_count }}</p>
     </div>
     <div class="bg-white rounded-xl p-md shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 border-secondary">
