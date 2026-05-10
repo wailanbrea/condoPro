@@ -49,6 +49,7 @@
         <div>
             <label class="block text-label-caps font-label-caps text-on-surface-variant mb-xs">Mes</label>
             <select name="month" class="w-full border border-outline-variant rounded-lg px-md py-sm text-on-surface bg-surface-container-lowest">
+                <option value="" {{ !$month ? 'selected' : '' }}>Todos</option>
                 @foreach($months as $m => $name)
                     <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ $name }}</option>
                 @endforeach
@@ -57,6 +58,7 @@
         <div>
             <label class="block text-label-caps font-label-caps text-on-surface-variant mb-xs">Año</label>
             <select name="year" class="w-full border border-outline-variant rounded-lg px-md py-sm text-on-surface bg-surface-container-lowest">
+                <option value="" {{ !$year ? 'selected' : '' }}>Todos</option>
                 @for($y = now()->year + 1; $y >= 2020; $y--)
                     <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                 @endfor

@@ -29,8 +29,8 @@ class BillingController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $month = (int) $request->input('month', now()->month);
-        $year = (int) $request->input('year', now()->year);
+        $month = $request->filled('month') ? (int) $request->input('month') : null;
+        $year = $request->filled('year') ? (int) $request->input('year') : null;
         $type = $request->input('type', 'all');
         $condoId = $request->input('condominium_id');
 
@@ -47,12 +47,14 @@ class BillingController extends Controller
         }
 
         $bills = MonthlyBill::with('apartment.users', 'condominium', 'billItems.gasReading', 'billItems.extraCharge', 'payments')
-            ->where('billing_month', $month)
-            ->where('billing_year', $year)
+            ->when($month, fn($q) => $q->where('billing_month', $month))
+            ->when($year, fn($q) => $q->where('billing_year', $year))
             ->when($condoId, fn($q) => $q->where('condominium_id', $condoId))
             ->when($type && $type !== 'all', function ($q) use ($type) {
                 $q->whereHas('billItems', fn($q2) => $q2->where('concept_type', $type));
             })
+            ->orderBy('billing_year', 'desc')
+            ->orderBy('billing_month', 'desc')
             ->orderBy('apartment_id')
             ->get();
 
