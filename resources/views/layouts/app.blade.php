@@ -131,8 +131,8 @@
         ['route' => 'users.index', 'icon' => 'groups', 'label' => __('messages.nav.residents')],
         ['route' => 'billing.index', 'icon' => 'receipt_long', 'label' => __('messages.nav.billing')],
         ['route' => 'gas.index', 'icon' => 'local_gas_station', 'label' => __('messages.nav.gas')],
-        ['route' => 'extra-charges.index', 'icon' => 'add_card', 'label' => __('messages.nav.extra_fees')],
-        ['route' => 'payments.index', 'icon' => 'payments', 'label' => __('messages.nav.payments')],
+        ['route' => 'extra-charges.index', 'icon' => 'warning', 'label' => app()->getLocale() === 'es' ? 'Imprevistos' : 'Extra Charges'],
+        ['route' => 'payments.index', 'icon' => 'payments', 'label' => __('messages.nav.payments'), 'badge' => \App\Models\Payment::when(auth()->user()->role === 'admin', fn($q) => $q->where('condominium_id', auth()->user()->condominium_id))->where('status', 'pending')->count()],
         ['route' => 'announcements.index', 'icon' => 'campaign', 'label' => app()->getLocale() === 'es' ? 'Avisos' : 'Announcements'],
         ['route' => 'expenses.index', 'icon' => 'account_balance_wallet', 'label' => __('messages.nav.expenses')],
         ['route' => 'expense-categories.index', 'icon' => 'category', 'label' => app()->getLocale() === 'es' ? 'Categorías' : 'Categories'],
@@ -157,7 +157,10 @@
             @endphp
             <a class="flex items-center gap-md px-md py-sm rounded-lg {{ $isActive ? 'text-primary dark:text-primary-fixed font-bold border-r-4 border-primary bg-surface-container-low' : 'text-on-surface-variant dark:text-outline-variant hover:text-primary hover:bg-surface-container-low' }} transition-all duration-200" href="{{ Route::has($item['route']) ? route($item['route']) : '#' }}">
                 <span class="material-symbols-outlined" data-icon="{{ $item['icon'] }}">{{ $item['icon'] }}</span>
-                <span>{{ $item['label'] }}</span>
+                <span class="flex-1">{{ $item['label'] }}</span>
+                @if(($item['badge'] ?? 0) > 0)
+                <span class="min-w-[20px] h-[20px] bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{{ $item['badge'] > 99 ? '99+' : $item['badge'] }}</span>
+                @endif
             </a>
         @endforeach
     </nav>

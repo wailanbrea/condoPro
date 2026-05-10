@@ -5,17 +5,17 @@
     <span class="material-symbols-outlined text-md" data-icon="home">home</span>
     <span class="text-body-sm">Home</span>
     <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-    <span class="text-body-sm font-bold text-primary">{{ __('messages.nav.extra_fees') }}</span>
+    <span class="text-body-sm font-bold text-primary">{{ app()->getLocale() === 'es' ? 'Imprevistos' : 'Extra Charges' }}</span>
 </nav>
 
 <div class="flex justify-between items-end mb-lg">
     <div>
-        <h2 class="font-display-xl text-display-xl text-on-surface">Cuotas Extraordinarias</h2>
-        <p class="text-on-surface-variant">Gestión de cuotas extraordinarias</p>
+        <h2 class="font-display-xl text-display-xl text-on-surface">{{ app()->getLocale() === 'es' ? 'Imprevistos' : 'Extra Charges' }}</h2>
+        <p class="text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Gastos imprevistos repartidos entre apartamentos' : 'Unforeseen expenses distributed among apartments' }}</p>
     </div>
     <a href="{{ route('extra-charges.create') }}" class="px-lg py-2 bg-primary text-white rounded-lg flex items-center gap-2 hover:brightness-110 transition-all">
         <span class="material-symbols-outlined" data-icon="add">add</span>
-        Nueva Cuota
+        {{ app()->getLocale() === 'es' ? 'Nuevo Imprevisto' : 'New Extra Charge' }}
     </a>
 </div>
 
