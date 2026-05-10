@@ -161,6 +161,38 @@ class GenerateMonthlyBills extends Command
                             'subtotal' => $subtotal,
                             'total' => $subtotal - $bill->previous_balance,
                         ]);
+
+                        // Apply prepayments (confirmed payments without bill_id)
+                        $prepayments = \App\Models\Payment::where('apartment_id', $apartment->id)
+                            ->where('status', 'confirmed')
+                            ->whereNull('bill_id')
+                            ->orderBy('payment_date', 'asc')
+                            ->get();
+
+                        $applied = 0;
+                        foreach ($prepayments as $payment) {
+                            $remaining = $bill->total - $bill->payments_applied - $applied;
+                            if ($remaining <= 0) break;
+                            
+                            $toApply = min($payment->amount, $remaining);
+                            $applied += $toApply;
+                            
+                            $payment->update(['bill_id' => $bill->id]);
+                            $payment->bills()->attach($bill->id, ['amount' => $toApply]);
+                            
+                            $this->info("    Applied prepayment RD$" . number_format($toApply, 2) . " from {$payment->payment_date->format('d/m/Y')}");
+                        }
+
+                        if ($applied > 0) {
+                            $bill->update(['payments_applied' => $bill->payments_applied + $applied]);
+                            
+                            $newTotal = $bill->total - $bill->payments_applied;
+                            if ($newTotal <= 0) {
+                                $bill->update(['status' => 'paid']);
+                            } elseif ($bill->payments_applied > 0) {
+                                $bill->update(['status' => 'partial']);
+                            }
+                        }
                     });
 
                     $this->info("  Created bill for apartment {$apartment->number}.");
