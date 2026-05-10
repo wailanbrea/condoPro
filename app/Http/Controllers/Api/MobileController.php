@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Apartment;
+use App\Models\BillItem;
 use App\Models\Condominium;
 use App\Models\GasReading;
+use App\Models\MonthlyBill;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -270,17 +273,29 @@ class MobileController extends Controller
 
         $this->auditLog->log('gas_reading_created_mobile', 'gas', $reading->id);
 
+        // Auto-create or update bill for this apartment/period
+        $bill = $this->createOrUpdateBillForGasReading($reading, $condominium);
+
         return response()->json([
             'success' => true,
+            'message' => 'Lectura registrada y factura de gas creada correctamente.',
             'data' => [
-                'id' => $reading->id,
-                'apartment_id' => $reading->apartment_id,
-                'previous_reading' => (float) $reading->reading_initial,
-                'current_reading' => (float) $reading->reading_final,
-                'consumption_m3' => (float) $reading->consumption_m3,
-                'gallons' => (float) $reading->gallons,
-                'total_amount' => (float) $reading->total_amount,
-                'status' => 'confirmed',
+                'gas_reading' => [
+                    'id' => $reading->id,
+                    'apartment_id' => $reading->apartment_id,
+                    'previous_reading' => (float) $reading->reading_initial,
+                    'current_reading' => (float) $reading->reading_final,
+                    'consumption_m3' => (float) $reading->consumption_m3,
+                    'gallons' => (float) $reading->gallons,
+                    'total_amount' => (float) $reading->total_amount,
+                    'status' => 'billed',
+                ],
+                'invoice' => $bill ? [
+                    'id' => $bill->id,
+                    'total' => (float) $bill->total,
+                    'balance' => (float) max(0, $bill->total - $bill->payments_applied),
+                    'status' => $bill->status,
+                ] : null,
             ],
         ], 201);
     }
@@ -365,13 +380,16 @@ class MobileController extends Controller
                     'created_by' => $user->id,
                 ]);
 
+                $this->createOrUpdateBillForGasReading($reading, $condominium);
+
                 $results[] = [
                     'apartment_id' => $reading->apartment_id,
                     'id' => $reading->id,
                     'consumption_m3' => (float) $reading->consumption_m3,
                     'gallons' => (float) $reading->gallons,
                     'total_amount' => (float) $reading->total_amount,
-                    'status' => 'confirmed',
+                    'status' => 'billed',
+                    'invoice_created' => true,
                 ];
             } catch (\Exception $e) {
                 $errors[] = ['index' => $index, 'message' => $e->getMessage()];
@@ -432,5 +450,143 @@ class MobileController extends Controller
             ];
         }
         return $months;
+    }
+
+    private function createOrUpdateBillForGasReading(GasReading $reading, Condominium $condominium): ?MonthlyBill
+    {
+        $apartment = Apartment::find($reading->apartment_id);
+        if (!$apartment) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($reading, $condominium, $apartment) {
+            $bill = MonthlyBill::where('apartment_id', $apartment->id)
+                ->where('billing_month', $reading->billing_month)
+                ->where('billing_year', $reading->billing_year)
+                ->first();
+
+            $gasItem = sprintf(
+                'Gas: %s m³ × %s = %s gal × RD$%s = RD$%s',
+                number_format($reading->consumption_m3, 3),
+                number_format($reading->conversion_factor, 4),
+                number_format($reading->gallons, 2),
+                number_format($reading->total_gallon_price, 2),
+                number_format($reading->total_amount, 2)
+            );
+
+            if ($bill) {
+                $existingGasItem = $bill->billItems()->where('concept_type', 'gas')->first();
+
+                if ($existingGasItem) {
+                    if ($bill->status === 'paid') {
+                        return $bill;
+                    }
+
+                    $oldAmount = $existingGasItem->amount;
+                    $existingGasItem->update([
+                        'description' => $gasItem,
+                        'amount' => $reading->total_amount,
+                        'reference_id' => $reading->id,
+                    ]);
+
+                    $bill->subtotal = ($bill->subtotal - $oldAmount) + $reading->total_amount;
+                    $bill->total = $bill->subtotal - abs($bill->previous_balance);
+                    $bill->save();
+                } else {
+                    BillItem::create([
+                        'bill_id' => $bill->id,
+                        'concept_type' => 'gas',
+                        'description' => $gasItem,
+                        'amount' => $reading->total_amount,
+                        'reference_id' => $reading->id,
+                    ]);
+
+                    $bill->subtotal += $reading->total_amount;
+                    $bill->total = $bill->subtotal - abs($bill->previous_balance);
+                    $bill->save();
+                }
+
+                $reading->update(['billed' => true]);
+                $this->auditLog->log('gas_bill_item_added', 'billing', $bill->id);
+
+                return $bill;
+            }
+
+            if (!$apartment->has_gas_meter || $reading->total_amount <= 0) {
+                $reading->update(['billed' => true]);
+                return null;
+            }
+
+            $dueDate = now()->setDate($reading->billing_year, $reading->billing_month, min(28, now()->setDate($reading->billing_year, $reading->billing_month, 1)->daysInMonth))->format('Y-m-d');
+
+            $previousBalance = MonthlyBill::where('apartment_id', $apartment->id)
+                ->whereIn('status', ['pending', 'partial', 'overdue'])
+                ->get()
+                ->sum(fn($b) => max(0, $b->total - $b->payments_applied));
+
+            $subtotal = 0;
+
+            $bill = MonthlyBill::create([
+                'condominium_id' => $condominium->id,
+                'apartment_id' => $apartment->id,
+                'billing_month' => $reading->billing_month,
+                'billing_year' => $reading->billing_year,
+                'subtotal' => 0,
+                'previous_balance' => -$previousBalance,
+                'payments_applied' => 0,
+                'total' => 0,
+                'due_date' => $dueDate,
+                'status' => 'pending',
+            ]);
+
+            $maintenanceAmount = $apartment->maintenance_fee;
+            if ($maintenanceAmount > 0) {
+                BillItem::create([
+                    'bill_id' => $bill->id,
+                    'concept_type' => 'maintenance',
+                    'description' => 'Mantenimiento',
+                    'amount' => $maintenanceAmount,
+                ]);
+                $subtotal += $maintenanceAmount;
+            }
+
+            BillItem::create([
+                'bill_id' => $bill->id,
+                'concept_type' => 'gas',
+                'description' => $gasItem,
+                'amount' => $reading->total_amount,
+                'reference_id' => $reading->id,
+            ]);
+            $subtotal += $reading->total_amount;
+
+            $installments = \App\Models\ExtraChargeInstallment::where('apartment_id', $apartment->id)
+                ->where('billing_month', $reading->billing_month)
+                ->where('billing_year', $reading->billing_year)
+                ->where('status', 'pending')
+                ->get();
+
+            foreach ($installments as $installment) {
+                $billItem = BillItem::create([
+                    'bill_id' => $bill->id,
+                    'concept_type' => 'extra_charge',
+                    'description' => $installment->extraCharge->title ?? 'Cuota Extra',
+                    'amount' => $installment->amount,
+                    'reference_id' => $installment->extra_charge_id,
+                ]);
+                $subtotal += $installment->amount;
+                $installment->update(['status' => 'billed', 'bill_item_id' => $billItem->id]);
+            }
+
+            $bill->update([
+                'subtotal' => $subtotal,
+                'total' => $subtotal - abs($bill->previous_balance),
+            ]);
+
+            $reading->update(['billed' => true]);
+
+            $this->auditLog->log('gas_bill_created_mobile', 'billing', $bill->id);
+
+            return $bill;
+        });
     }
 }

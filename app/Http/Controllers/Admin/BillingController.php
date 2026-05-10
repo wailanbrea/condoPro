@@ -26,6 +26,77 @@ class BillingController extends Controller
         $this->auditLog = $auditLog;
     }
 
+    public function index(Request $request): View
+    {
+        $user = Auth::user();
+        $month = (int) $request->input('month', now()->month);
+        $year = (int) $request->input('year', now()->year);
+        $type = $request->input('type', 'all');
+        $condoId = $request->input('condominium_id');
+
+        $condominiums = $user->role === 'super_admin'
+            ? Condominium::orderBy('name')->get()
+            : Condominium::where('id', $user->condominium_id)->get();
+
+        if (!$condoId) {
+            $condoId = $condominiums->first()?->id;
+        }
+
+        if ($user->role === 'admin') {
+            $condoId = $user->condominium_id;
+        }
+
+        $bills = MonthlyBill::with('apartment.users', 'condominium', 'billItems.gasReading', 'billItems.extraCharge', 'payments')
+            ->where('billing_month', $month)
+            ->where('billing_year', $year)
+            ->when($condoId, fn($q) => $q->where('condominium_id', $condoId))
+            ->when($type && $type !== 'all', function ($q) use ($type) {
+                $q->whereHas('billItems', fn($q2) => $q2->where('concept_type', $type));
+            })
+            ->orderBy('apartment_id')
+            ->get();
+
+        $grouped = $bills->groupBy(function ($bill) {
+            $user = $bill->apartment?->users?->first();
+            return $user ? $user->id : 'none_' . $bill->apartment_id;
+        })->map(function ($bills, $key) {
+            $firstBill = $bills->first();
+            $user = $firstBill->apartment?->users?->first();
+            $apartments = $bills->pluck('apartment')->unique('id');
+
+            $pendingStatuses = ['pending', 'partial', 'overdue'];
+
+            return (object) [
+                'user_id' => $user?->id,
+                'user_name' => $user?->name ?? $firstBill->apartment?->owner_name ?? 'Sin propietario',
+                'apartment_numbers' => $apartments->pluck('number')->implode(', '),
+                'invoices_count' => $bills->count(),
+                'pending_invoices_count' => $bills->whereIn('status', $pendingStatuses)->count(),
+                'paid_invoices_count' => $bills->where('status', 'paid')->count(),
+                'total_billed' => $bills->sum('total'),
+                'total_paid' => $bills->sum('payments_applied'),
+                'total_pending' => $bills->sum(fn($b) => max(0, $b->total - $b->payments_applied)),
+                'bills' => $bills,
+            ];
+        })->sortBy('user_name');
+
+        $summary = (object) [
+            'users_count' => $grouped->count(),
+            'invoices_count' => $bills->count(),
+            'pending_invoices_count' => $bills->whereIn('status', ['pending', 'partial', 'overdue'])->count(),
+            'total_billed' => $bills->sum('total'),
+            'total_paid' => $bills->sum('payments_applied'),
+            'total_pending' => $bills->sum(fn($b) => max(0, $b->total - $b->payments_applied)),
+        ];
+
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $months[$m] = ucfirst(\Carbon\Carbon::create()->month($m)->locale('es')->monthName);
+        }
+
+        return view('admin.billing.index', compact('bills', 'grouped', 'summary', 'month', 'year', 'type', 'condoId', 'condominiums', 'months'));
+    }
+
     public function index(): View
     {
         $user = Auth::user();
