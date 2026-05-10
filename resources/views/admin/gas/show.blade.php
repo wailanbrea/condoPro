@@ -13,7 +13,7 @@
 <div class="flex justify-between items-end mb-lg">
     <div>
         <h2 class="font-display-xl text-display-xl text-on-surface">Detalle de Lectura de Gas</h2>
-        <p class="text-on-surface-variant">{{ $gas->apartment->number ?? '—' }} — {{ $gas->apartment->condominium->name ?? '—' }}</p>
+        <p class="text-on-surface-variant">{{ $gas->apartment?->number ?? '—' }} — {{ $gas->condominium?->name ?? '—' }}</p>
     </div>
     <div class="flex gap-md">
         @if(!$gas->billed)
@@ -36,22 +36,33 @@
     </div>
 @endif
 
+{{-- Photo --}}
+@if($gas->photo_path)
+    <div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
+        <h4 class="font-headline-md text-headline-md mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined" data-icon="photo_camera">photo_camera</span>
+            Foto del Contador
+        </h4>
+        <img src="{{ Storage::url($gas->photo_path) }}" alt="Foto del contador" class="max-h-80 rounded-lg object-contain">
+    </div>
+@endif
+
 {{-- Status Badges --}}
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-gutter mb-xl">
     <div class="bg-white p-lg rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 border-primary">
         <p class="text-on-surface-variant font-label-caps text-label-caps mb-xs">{{ __('messages.common.apartment') }}</p>
-        <h3 class="font-headline-md text-headline-md text-on-surface">{{ $gas->apartment->number ?? '—' }}</h3>
-        <p class="text-body-sm text-on-surface-variant">{{ $gas->apartment->owner_name ?? '—' }}</p>
+        <h3 class="font-headline-md text-headline-md text-on-surface">{{ $gas->apartment?->number ?? '—' }}</h3>
+        <p class="text-body-sm text-on-surface-variant">{{ $gas->apartment?->owner_name ?? '—' }}</p>
     </div>
     <div class="bg-white p-lg rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 border-secondary">
         <p class="text-on-surface-variant font-label-caps text-label-caps mb-xs">Contador</p>
         <h3 class="font-headline-md text-headline-md text-on-surface">{{ $gas->meter_number ?? '—' }}</h3>
-        <p class="text-body-sm text-on-surface-variant">{{ $gas->condominium->name ?? '—' }}</p>
+        <p class="text-body-sm text-on-surface-variant">{{ $gas->condominium?->name ?? '—' }}</p>
     </div>
     <div class="bg-white p-lg rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 border-tertiary">
         <p class="text-on-surface-variant font-label-caps text-label-caps mb-xs">Período</p>
         <h3 class="font-headline-md text-headline-md text-on-surface">{{ $gas->reading_date_start?->format('d/m/Y') ?? '—' }} — {{ $gas->reading_date_end?->format('d/m/Y') ?? '—' }}</h3>
-        <p class="text-body-sm text-on-surface-variant">{{ ucfirst(\Carbon\Carbon::create()->month($gas->billing_month)->monthName) }} {{ $gas->billing_year }}</p>
+        <p class="text-body-sm text-on-surface-variant">{{ $gas->billing_month ? ucfirst(\Carbon\Carbon::create()->month($gas->billing_month)->locale('es')->monthName) : '—' }} {{ $gas->billing_year ?? '—' }}</p>
     </div>
     <div class="bg-white p-lg rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] border-l-4 {{ $gas->billed ? 'border-[#006644]' : 'border-amber-500' }}">
         <p class="text-on-surface-variant font-label-caps text-label-caps mb-xs">{{ __('messages.common.status') }}</p>
@@ -83,34 +94,34 @@
                 <tr class="border-b border-outline-variant">
                     <td class="px-md py-md text-body-sm text-on-surface-variant">1</td>
                     <td class="px-md py-md text-body-sm text-on-surface">Lectura Actual</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->reading_final, 3) }} m³</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->reading_final ?? 0, 3) }} m³</td>
                 </tr>
                 <tr class="border-b border-outline-variant">
                     <td class="px-md py-md text-body-sm text-on-surface-variant">2</td>
                     <td class="px-md py-md text-body-sm text-on-surface">Lectura Anterior</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->reading_initial, 3) }} m³</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->reading_initial ?? 0, 3) }} m³</td>
                 </tr>
                 <tr class="border-b border-outline-variant bg-surface-container-lowest">
                     <td class="px-md py-md text-body-sm text-on-surface-variant font-bold">3</td>
                     <td class="px-md py-md text-body-sm text-on-surface font-bold">Consumo en m³ (Final − Inicial)</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">{{ number_format($gas->consumption_m3, 3) }} m³</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">{{ number_format($gas->consumption_m3 ?? 0, 3) }} m³</td>
                 </tr>
                 <tr class="border-b border-outline-variant">
                     <td class="px-md py-md text-body-sm text-on-surface-variant">4</td>
                     <td class="px-md py-md text-body-sm text-on-surface">× Factor de Conversión</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->conversion_factor, 4) }}</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right">{{ number_format($gas->conversion_factor ?? 0, 4) }}</td>
                 </tr>
                 <tr class="border-b border-outline-variant bg-surface-container-lowest">
                     <td class="px-md py-md text-body-sm text-on-surface-variant font-bold">5</td>
                     <td class="px-md py-md text-body-sm text-on-surface font-bold">Galones (Consumo × Factor)</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">{{ number_format($gas->gallons, 2) }} gal</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">{{ number_format($gas->gallons ?? 0, 2) }} gal</td>
                 </tr>
                 <tr class="border-b border-outline-variant">
                     <td class="px-md py-md text-body-sm text-on-surface-variant">6</td>
                     <td class="px-md py-md text-body-sm text-on-surface">Precio por Galón</td>
-                    <td class="px-md py-md font-mono-data text-on-surface text-right">RD${{ number_format($gas->gallon_price, 2) }}</td>
+                    <td class="px-md py-md font-mono-data text-on-surface text-right">RD${{ number_format($gas->gallon_price ?? 0, 2) }}</td>
                 </tr>
-                @if($gas->extra_cost_per_gallon > 0)
+                @if(($gas->extra_cost_per_gallon ?? 0) > 0)
                     <tr class="border-b border-outline-variant">
                         <td class="px-md py-md text-body-sm text-on-surface-variant">7</td>
                         <td class="px-md py-md text-body-sm text-on-surface">+ Costo Adicional por Galón</td>
@@ -119,20 +130,20 @@
                     <tr class="border-b border-outline-variant bg-surface-container-lowest">
                         <td class="px-md py-md text-body-sm text-on-surface-variant font-bold">8</td>
                         <td class="px-md py-md text-body-sm text-on-surface font-bold">= Precio Total por Galón</td>
-                        <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">RD${{ number_format($gas->total_gallon_price, 2) }}</td>
+                        <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">RD${{ number_format($gas->total_gallon_price ?? 0, 2) }}</td>
                     </tr>
                 @else
                     <tr class="border-b border-outline-variant bg-surface-container-lowest">
                         <td class="px-md py-md text-body-sm text-on-surface-variant font-bold">7</td>
                         <td class="px-md py-md text-body-sm text-on-surface font-bold">Precio Total por Galón</td>
-                        <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">RD${{ number_format($gas->total_gallon_price, 2) }}</td>
+                        <td class="px-md py-md font-mono-data text-on-surface text-right font-bold">RD${{ number_format($gas->total_gallon_price ?? $gas->gallon_price ?? 0, 2) }}</td>
                     </tr>
                 @endif
             </tbody>
             <tfoot>
                 <tr class="bg-primary border-t-2 border-primary">
-                    <td class="px-md py-md font-label-caps text-label-caps text-white" colspan="2">TOTAL A FACTURAR ({{ number_format($gas->gallons, 2) }} gal × RD${{ number_format($gas->total_gallon_price, 2) }})</td>
-                    <td class="px-md py-md font-mono-data text-headline-lg text-white font-bold text-right">RD${{ number_format($gas->total_amount, 2) }}</td>
+                    <td class="px-md py-md text-white font-bold" colspan="2" style="color: white !important;">TOTAL A FACTURAR ({{ number_format($gas->gallons ?? 0, 2) }} gal × RD${{ number_format($gas->total_gallon_price ?? $gas->gallon_price ?? 0, 2) }})</td>
+                    <td class="px-md py-md font-mono-data text-headline-lg font-bold text-right" style="color: white !important;">RD${{ number_format($gas->total_amount ?? 0, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -146,7 +157,7 @@
         <div>
             <p class="font-bold text-on-surface mb-xs">Fórmula Aplicada</p>
             <p class="font-mono-data text-on-surface">
-                {{ number_format($gas->consumption_m3, 3) }} m³ × {{ number_format($gas->conversion_factor, 4) }} = {{ number_format($gas->gallons, 2) }} gal × RD${{ number_format($gas->total_gallon_price, 2) }} = <strong>RD${{ number_format($gas->total_amount, 2) }}</strong>
+                {{ number_format($gas->consumption_m3 ?? 0, 3) }} m³ × {{ number_format($gas->conversion_factor ?? 0, 4) }} = {{ number_format($gas->gallons ?? 0, 2) }} gal × RD${{ number_format($gas->total_gallon_price ?? $gas->gallon_price ?? 0, 2) }} = <strong>RD${{ number_format($gas->total_amount ?? 0, 2) }}</strong>
             </p>
         </div>
     </div>
