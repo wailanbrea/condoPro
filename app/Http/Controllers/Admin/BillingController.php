@@ -97,19 +97,6 @@ class BillingController extends Controller
         return view('admin.billing.index', compact('bills', 'grouped', 'summary', 'month', 'year', 'type', 'condoId', 'condominiums', 'months'));
     }
 
-    public function index(): View
-    {
-        $user = Auth::user();
-
-        $bills = MonthlyBill::with('apartment', 'condominium', 'billItems')
-            ->when($user->role === 'admin', fn($q) => $q->where('condominium_id', $user->condominium_id))
-            ->orderBy('billing_year', 'desc')
-            ->orderBy('billing_month', 'desc')
-            ->get();
-
-        return view('admin.billing.index', compact('bills'));
-    }
-
     public function create(): View
     {
         $condominiums = $this->getCondominiumsForSelect();
