@@ -180,8 +180,8 @@ class MobileController extends Controller
             'period' => [
                 'month' => (int) $month,
                 'year' => (int) $year,
-                'reading_date_start' => "$year-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-01",
-                'reading_date_end' => \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->format('Y-m-d'),
+                'reading_start_date' => "$year-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-01",
+                'reading_end_date' => \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->format('Y-m-d'),
             ],
         ]);
     }
