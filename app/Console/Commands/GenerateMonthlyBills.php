@@ -76,7 +76,7 @@ class GenerateMonthlyBills extends Command
                     $existing->delete();
                 }
 
-                $dueDate = now()->setDate($year, $month, 15)->addMonthNoOverflow()->format('Y-m-d');
+                $dueDate = now()->setDate($year, $month, min(30, now()->setDate($year, $month, 1)->daysInMonth))->format('Y-m-d');
 
                 try {
                     DB::transaction(function () use ($apartment, $condominium, $month, $year, $dueDate) {

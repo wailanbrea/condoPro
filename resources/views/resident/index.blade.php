@@ -184,6 +184,8 @@
                     @else
                         <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
                     @endif
+                @elseif($nextBillPreview)
+                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Próxima' : 'Upcoming' }}</span>
                 @else
                     <span class="px-2 py-1 bg-secondary/10 text-secondary text-xs font-bold rounded-full">{{ app()->getLocale() === 'es' ? 'Al día' : 'Up to date' }}</span>
                 @endif
@@ -191,20 +193,59 @@
             <h4 class="font-body-lg text-body-lg font-bold">{{ app()->getLocale() === 'es' ? 'Resumen de Pago' : 'Payment Summary' }}</h4>
             
             <div class="space-y-md">
-                {{-- Next Payment --}}
-                <div class="bg-surface-container-low rounded-lg p-md">
-                    <p class="text-label-caps text-label-caps text-on-surface-variant mb-xs">{{ app()->getLocale() === 'es' ? 'Próximo pago' : 'Next payment' }}</p>
-                    @if($nextPayment)
+                {{-- Next Payment / Expected Bill --}}
+                @if($nextPayment)
+                    {{-- Existing pending bill --}}
+                    <div class="bg-surface-container-low rounded-lg p-md">
+                        <p class="text-label-caps text-label-caps text-on-surface-variant mb-xs">{{ app()->getLocale() === 'es' ? 'Próximo pago' : 'Next payment' }}</p>
                         <div class="flex justify-between items-center">
                             <div>
                                 <p class="font-mono-data text-headline-md text-on-surface font-bold">RD${{ number_format($nextPayment->total - $nextPayment->payments_applied, 2) }}</p>
                                 <p class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Vence:' : 'Due:' }} {{ $nextPayment->due_date->format('d M, Y') }}</p>
                             </div>
                         </div>
-                    @else
-                        <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'No hay pagos pendientes' : 'No pending payments' }}</p>
-                    @endif
-                </div>
+                    </div>
+                @elseif($nextBillPreview)
+                    {{-- Upcoming bill preview --}}
+                    <div class="bg-surface-container-low rounded-lg p-md">
+                        <p class="text-label-caps text-label-caps text-on-surface-variant mb-xs">
+                            {{ app()->getLocale() === 'es' ? 'Próxima factura' : 'Next bill' }} · 
+                            {{ $nextBillPreview['billing_date']->format('d M') }}
+                        </p>
+                        
+                        <p class="font-mono-data text-headline-md text-on-surface font-bold mb-sm">RD${{ number_format($nextBillPreview['total'], 2) }}</p>
+                        
+                        {{-- Breakdown --}}
+                        <div class="space-y-xs border-t border-outline-variant/20 pt-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Mantenimiento' : 'Maintenance' }}</span>
+                                <span class="font-mono-data text-body-sm">RD${{ number_format($nextBillPreview['maintenance'], 0) }}</span>
+                            </div>
+                            @if($nextBillPreview['extra_charges'] > 0)
+                                <div class="flex justify-between items-center">
+                                    <span class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Cargos extra' : 'Extra charges' }}</span>
+                                    <span class="font-mono-data text-body-sm">RD${{ number_format($nextBillPreview['extra_charges'], 0) }}</span>
+                                </div>
+                                @foreach($nextBillPreview['extra_details'] as $extra)
+                                <div class="text-xs text-on-surface-variant pl-3 border-l-2 border-outline-variant/30">
+                                    {{ $extra['title'] }}: RD${{ number_format($extra['amount'], 0) }}
+                                </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        
+                        <p class="text-xs text-primary mt-sm">
+                            <span class="material-symbols-outlined text-xs align-middle">event</span>
+                            {{ app()->getLocale() === 'es' ? 'Se genera el día' : 'Generated on day' }} {{ $nextBillPreview['billing_date']->day }} 
+                            ({{ $nextBillPreview['days_until'] }} {{ app()->getLocale() === 'es' ? 'días' : 'days' }})
+                        </p>
+                    </div>
+                @else
+                    <div class="bg-surface-container-low rounded-lg p-md">
+                        <p class="text-label-caps text-label-caps text-on-surface-variant mb-xs">{{ app()->getLocale() === 'es' ? 'Estado' : 'Status' }}</p>
+                        <p class="text-on-surface-variant text-body-sm">{{ app()->getLocale() === 'es' ? 'Factura ya generada para este período' : 'Bill already generated for this period' }}</p>
+                    </div>
+                @endif
                 
                 {{-- Quick stats --}}
                 <div class="grid grid-cols-2 gap-sm">
