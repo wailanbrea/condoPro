@@ -126,6 +126,19 @@ return [
         'details' => 'Detalles',
         'total' => 'Total',
         'subtotal' => 'Subtotal',
+        'january' => 'Enero',
+        'february' => 'Febrero',
+        'march' => 'Marzo',
+        'april' => 'Abril',
+        'may' => 'Mayo',
+        'june' => 'Junio',
+        'july' => 'Julio',
+        'august' => 'Agosto',
+        'september' => 'Septiembre',
+        'october' => 'Octubre',
+        'november' => 'Noviembre',
+        'december' => 'Diciembre',
+        'no_condominiums' => 'No hay condominios registrados.',
     ],
 
     'condominiums' => [
@@ -261,21 +274,5 @@ return [
 
     'expense_categories' => [
         'has_expenses' => 'No se puede eliminar una categoría con egresos asociados.',
-    ],
-
-    'common' => [
-        'january' => 'Enero',
-        'february' => 'Febrero',
-        'march' => 'Marzo',
-        'april' => 'Abril',
-        'may' => 'Mayo',
-        'june' => 'Junio',
-        'july' => 'Julio',
-        'august' => 'Agosto',
-        'september' => 'Septiembre',
-        'october' => 'Octubre',
-        'november' => 'Noviembre',
-        'december' => 'Diciembre',
-        'no_condominiums' => 'No hay condominios registrados.',
     ],
 ];
