@@ -29,6 +29,7 @@ class GasReading extends Model
         'total_gas',
         'total_amount',
         'billed',
+        'photo_path',
         'created_by',
         'status',
     ];
