@@ -310,7 +310,7 @@
                 <select id="status" name="status" required
                     class="w-full px-md py-md border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary-container transition-all @error('status') border-error ring-1 ring-error @enderror">
                     <option value="active" {{ old('status', $setting->status) === 'active' ? 'selected' : '' }}>Activo</option>
-                    <option value="inactive" {{ old('status', $setting->status) === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
+                    <option value="inactive" {{ old('status', $setting->status) === 'inactive' ? 'selected' : '' }}>Inactivo</option>
                 </select>
                 @error('status')
                     <p class="mt-1 text-body-sm text-error">{{ $message }}</p>
