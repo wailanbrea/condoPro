@@ -317,7 +317,7 @@
             </div>
             <div>
                 <label class="block text-label-caps text-on-surface-variant font-label-caps text-[11px] mb-1">Total a Facturar</label>
-                <div id="quick_calc_total" class="w-full px-md py-2.5 border-2 border-primary rounded-lg bg-primary-container text-primary text-sm text-right font-mono-data font-bold">
+                <div id="quick_calc_total" class="w-full px-md py-2.5 border-2 border-primary rounded-lg bg-primary text-white text-sm text-right font-mono-data font-bold">
                     RD$0.00
                 </div>
             </div>
@@ -723,13 +723,13 @@ document.getElementById('resetTankBtn').addEventListener('click', function() {
         // Highlight if final < initial
         if (final_ > 0 && initial > 0 && final_ < initial) {
             finalInput.classList.add('border-error');
-            calcTotal.classList.remove('border-primary', 'bg-primary-container', 'text-primary');
+            calcTotal.classList.remove('border-primary', 'bg-primary', 'text-white');
             calcTotal.classList.add('border-error', 'bg-[#FFEBE6]', 'text-[#BF2600]');
             calcTotal.textContent = 'ERROR: Actual < Anterior';
         } else {
             finalInput.classList.remove('border-error');
             calcTotal.classList.remove('border-error', 'bg-[#FFEBE6]', 'text-[#BF2600]');
-            calcTotal.classList.add('border-primary', 'bg-primary-container', 'text-primary');
+            calcTotal.classList.add('border-primary', 'bg-primary', 'text-white');
         }
     }
 
