@@ -28,7 +28,7 @@
         <span class="material-symbols-outlined" data-icon="error">error</span>
         {{ session('error') }}
     </div>
-</div>
+@endif
 
 {{-- ============================================ --}}
 {{-- TANK DASHBOARD --}}
