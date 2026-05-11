@@ -52,7 +52,6 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin'])->prefix('admin
     Route::get('/gas-tank', [GasTankSettingController::class, 'edit'])->name('gas-tank.edit');
     Route::put('/gas-tank', [GasTankSettingController::class, 'update'])->name('gas-tank.update');
     Route::post('/gas-tank/reset', [GasTankSettingController::class, 'reset'])->name('gas-tank.reset');
-    Route::get('/gas-deliveries', [GasDeliveryController::class, 'index'])->name('gas-deliveries.index');
     Route::get('/gas-deliveries/{gasDelivery}', [GasDeliveryController::class, 'show'])->name('gas-deliveries.show');
     Route::resource('extra-charges', ExtraChargeController::class);
     Route::resource('payments', PaymentController::class);

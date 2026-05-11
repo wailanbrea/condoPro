@@ -115,10 +115,10 @@ class GasTankSettingController extends Controller
                 'deliveriesByMonth' => $deliveriesByMonth,
             ];
 
-            $deliveries = GasDelivery::where('condominium_id', $condoId)
-                ->where('status', 'completed')
-                ->orderBy('delivery_date', 'desc')
-                ->paginate(10);
+            $deliveries = GasDelivery::with('condominium', 'creator')
+                ->where('condominium_id', $condoId)
+                ->orderBy('created_at', 'desc')
+                ->paginate(15);
         }
 
         return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting', 'tankData', 'deliveries'));

@@ -13,13 +13,7 @@
 <div class="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
     <div>
         <h2 class="font-display-xl text-display-xl text-on-surface">Tanque Principal</h2>
-        <p class="text-on-surface-variant">Inventario, gráficas y configuración del gas</p>
-    </div>
-    <div class="flex gap-md">
-        <a href="{{ route('gas-deliveries.index') }}" class="bg-white border border-outline-variant text-primary px-lg py-md rounded-lg font-semibold flex items-center gap-sm hover:bg-surface-container-low transition-colors">
-            <span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
-            Recepciones
-        </a>
+        <p class="text-on-surface-variant">Inventario, gráficas, historial y configuración del gas</p>
     </div>
 </div>
 
@@ -188,37 +182,38 @@
     </div>
 </div>
 
-{{-- Supply History --}}
-@if($deliveries->count() > 0)
-<div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
-    <div class="flex justify-between items-center mb-lg">
+{{-- Delivery History --}}
+<div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] overflow-hidden mb-xl">
+    <div class="p-lg border-b border-outline-variant">
         <h4 class="font-headline-md text-headline-md flex items-center gap-2">
             <span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
-            Historial de Abastecimientos
+            Historial de Recepciones de Gas
         </h4>
-        <a href="{{ route('gas-deliveries.index') }}" class="text-primary text-body-sm font-semibold flex items-center gap-xs hover:underline">
-            <span class="material-symbols-outlined text-[18px]">list</span>
-            Ver todos
-        </a>
+        <p class="text-on-surface-variant text-body-sm mt-xs">Registro de las veces que se ha comprado gas para el condominio</p>
     </div>
+    @if($deliveries->count() > 0)
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-surface-container-low/80 border-b-2 border-primary">
                     <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant">Fecha</th>
-                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Galones</th>
-                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Monto</th>
-                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-center">Estado</th>
-                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant">Inventario</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Lectura Antes</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Lectura Después</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Galones Recibidos</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant text-right">Monto Factura</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant">Estado</th>
+                    <th class="px-md py-md text-label-caps font-label-caps text-on-surface-variant">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($deliveries as $delivery)
                 <tr class="border-b border-outline-variant hover:bg-surface-container-lowest/50 transition-colors">
                     <td class="px-md py-md text-body-sm text-on-surface">{{ $delivery->delivery_date?->format('d/m/Y') ?? '—' }}</td>
-                    <td class="px-md py-md text-body-sm text-on-surface text-right font-mono-data font-bold">{{ number_format($delivery->gallons_delivered ?? 0, 1) }} gal</td>
+                    <td class="px-md py-md text-body-sm text-on-surface text-right font-mono-data">{{ $delivery->tank_reading_before ? number_format($delivery->tank_reading_before, 3) : '—' }}</td>
+                    <td class="px-md py-md text-body-sm text-on-surface text-right font-mono-data">{{ $delivery->tank_reading_after ? number_format($delivery->tank_reading_after, 3) : '—' }}</td>
+                    <td class="px-md py-md text-body-sm text-on-surface text-right font-mono-data">{{ $delivery->gallons_delivered ? number_format($delivery->gallons_delivered, 2) . ' gal' : '—' }}</td>
                     <td class="px-md py-md text-body-sm text-on-surface text-right font-mono-data">{{ $delivery->invoice_amount ? 'RD$' . number_format($delivery->invoice_amount, 2) : '—' }}</td>
-                    <td class="px-md py-md text-body-sm text-center">
+                    <td class="px-md py-md text-body-sm">
                         @if($delivery->status === 'completed')
                             <span class="px-3 py-1 bg-[#E3FCEF] text-[#006644] rounded-full text-[11px] font-bold uppercase tracking-wider">Completado</span>
                         @elseif($delivery->status === 'receiving')
@@ -228,21 +223,26 @@
                         @endif
                     </td>
                     <td class="px-md py-md text-body-sm">
-                        <div class="flex items-center gap-xs">
-                            @php $afterPct = $setting->capacity_gallons > 0 && $delivery->tank_reading_after ? min(100, ($delivery->tank_reading_after / $setting->capacity_gallons) * 100) : 0; @endphp
-                            <div class="w-24 h-2 bg-surface-container-high rounded-full overflow-hidden">
-                                <div class="bg-[#006644] h-full rounded-full" style="width: {{ $afterPct }}%;"></div>
-                            </div>
-                            <span class="text-[12px] text-on-surface-variant">{{ $delivery->tank_reading_after ? number_format($delivery->tank_reading_after, 0) : '—' }} gal</span>
-                        </div>
+                        <a href="{{ route('gas-deliveries.show', $delivery) }}" class="text-primary hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+                            Ver
+                        </a>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
+    <div class="px-md py-md border-t border-outline-variant">
+        {{ $deliveries->withQueryString()->links() }}
+    </div>
+    @else
+    <div class="p-xl text-center">
+        <span class="material-symbols-outlined text-on-surface-variant mb-md" data-icon="local_shipping" style="font-size:48px;"></span>
+        <p class="text-on-surface-variant">No hay recepciones de gas registradas.</p>
+    </div>
+    @endif
 </div>
-@endif
 
 {{-- SETTINGS FORM --}}
 <div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">

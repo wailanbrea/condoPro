@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Condominium;
 use App\Models\GasDelivery;
 use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class GasDeliveryController extends Controller
@@ -17,26 +15,6 @@ class GasDeliveryController extends Controller
     public function __construct(AuditLogService $auditLog)
     {
         $this->auditLog = $auditLog;
-    }
-
-    public function index(): View
-    {
-        $user = Auth::user();
-
-        $condominiums = $user->role === 'super_admin'
-            ? Condominium::orderBy('name')->get()
-            : Condominium::where('id', $user->condominium_id)->get();
-
-        $condoId = $user->role === 'admin'
-            ? $user->condominium_id
-            : (request('condominium_id') ?: $condominiums->first()?->id);
-
-        $deliveries = GasDelivery::with('condominium', 'creator')
-            ->when($condoId, fn($q) => $q->where('condominium_id', $condoId))
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        return view('admin.gas-deliveries.index', compact('deliveries', 'condominiums', 'condoId'));
     }
 
     public function show(GasDelivery $gasDelivery): View
