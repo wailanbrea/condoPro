@@ -121,7 +121,7 @@ class GasTankSettingController extends Controller
                 ->paginate(10);
         }
 
-        return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting', 'tankData'));
+        return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting', 'tankData', 'deliveries'));
     }
 
     public function update(Request $request)
