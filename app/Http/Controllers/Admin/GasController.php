@@ -88,7 +88,11 @@ class GasController extends Controller
             $lastDelivery = GasDelivery::where('condominium_id', $condoId)->where('status', 'completed')->orderBy('delivery_date', 'desc')->first();
             $totalDelivered = GasDelivery::where('condominium_id', $condoId)->where('status', 'completed')->sum('gallons_delivered');
 
-            $estimatedInventory = max(0, (float) $setting->capacity_gallons - (float) $totalConsumption + (float) $totalDelivered);
+            $consumptionSinceLastDelivery = $lastDelivery
+                ? (float) GasReading::where('condominium_id', $condoId)->where('created_at', '>=', $lastDelivery->created_at)->sum('gallons')
+                : 0;
+
+            $estimatedInventory = max(0, (float) $totalDelivered - $consumptionSinceLastDelivery);
             $estimatedInventory = min($estimatedInventory, (float) $setting->capacity_gallons);
             $percentage = $setting->capacity_gallons > 0 ? round(($estimatedInventory / (float) $setting->capacity_gallons) * 100, 1) : 0;
 
