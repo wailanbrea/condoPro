@@ -7,7 +7,7 @@
     <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
     <a href="{{ route('gas.index') }}" class="text-body-sm hover:text-primary transition-colors">Gas</a>
     <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-    <a href="{{ route('gas-tank.edit', ['condominium_id' => $gasDelivery->condominium_id]) }}" class="text-body-sm hover:text-primary transition-colors">Tanque Principal</a>
+    <a href="{{ route('gas.index', ['condominium_id' => $gasDelivery->condominium_id]) }}" class="text-body-sm hover:text-primary transition-colors">Gas</a>
     <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
     <span class="text-body-sm font-bold text-primary">Detalle</span>
 </nav>
@@ -17,9 +17,9 @@
         <h2 class="font-display-xl text-display-xl text-on-surface">Detalle de Recepción de Gas</h2>
         <p class="text-on-surface-variant">{{ $gasDelivery->condominium?->name ?? '—' }}</p>
     </div>
-    <a href="{{ route('gas-tank.edit', ['condominium_id' => $gasDelivery->condominium_id]) }}" class="px-lg py-2 bg-white border border-outline-variant rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+    <a href="{{ route('gas.index', ['condominium_id' => $gasDelivery->condominium_id]) }}" class="px-lg py-2 bg-white border border-outline-variant rounded-lg flex items-center gap-2 hover:bg-surface-container-low transition-colors">
         <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
-        Volver al Tanque Principal
+        Volver a Gas
     </a>
 </div>
 

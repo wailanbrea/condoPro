@@ -131,7 +131,6 @@
         ['route' => 'users.index', 'icon' => 'groups', 'label' => __('messages.nav.residents')],
         ['route' => 'billing.index', 'icon' => 'receipt_long', 'label' => __('messages.nav.billing')],
         ['route' => 'gas.index', 'icon' => 'local_gas_station', 'label' => __('messages.nav.gas')],
-        ['route' => 'gas-tank.edit', 'icon' => 'tune', 'label' => app()->getLocale() === 'es' ? 'Config. Tanque' : 'Tank Settings'],
         ['route' => 'extra-charges.index', 'icon' => 'warning', 'label' => app()->getLocale() === 'es' ? 'Imprevistos' : 'Extra Charges'],
         ['route' => 'payments.index', 'icon' => 'payments', 'label' => __('messages.nav.payments'), 'badge' => \App\Models\Payment::when(auth()->user()->role === 'admin', fn($q) => $q->where('condominium_id', auth()->user()->condominium_id))->where('status', 'pending')->count()],
         ['route' => 'announcements.index', 'icon' => 'campaign', 'label' => app()->getLocale() === 'es' ? 'Avisos' : 'Announcements'],
