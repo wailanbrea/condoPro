@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Apartment;
 use App\Models\BillItem;
 use App\Models\Condominium;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\GasDelivery;
 use App\Models\GasReading;
 use App\Models\GasTankSetting;
@@ -590,6 +592,8 @@ class MobileController extends Controller
             $gasDelivery->update(['invoice_photo_path' => $path]);
         }
 
+        $this->createExpenseForDelivery($gasDelivery);
+
         $this->auditLog->log('gas_delivery_completed', 'gas', $gasDelivery->id);
 
         return response()->json([
@@ -654,5 +658,30 @@ class MobileController extends Controller
             ];
         }
         return $months;
+    }
+
+    private function createExpenseForDelivery(GasDelivery $gasDelivery): void
+    {
+        if (!$gasDelivery->invoice_amount || $gasDelivery->invoice_amount <= 0) {
+            return;
+        }
+
+        $category = ExpenseCategory::firstOrCreate(
+            [
+                'condominium_id' => $gasDelivery->condominium_id,
+                'name' => 'Combustible',
+            ],
+            ['status' => 'active']
+        );
+
+        Expense::create([
+            'condominium_id' => $gasDelivery->condominium_id,
+            'category_id' => $category->id,
+            'date' => $gasDelivery->delivery_date ?? now()->toDateString(),
+            'concept' => 'Compra de gas - ' . number_format($gasDelivery->gallons_delivered ?? 0, 2) . ' galones',
+            'amount' => $gasDelivery->invoice_amount,
+            'receipt_path' => $gasDelivery->invoice_photo_path,
+            'created_by' => $gasDelivery->created_by,
+        ]);
     }
 }
