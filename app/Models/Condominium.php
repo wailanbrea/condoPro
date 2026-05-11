@@ -84,4 +84,14 @@ class Condominium extends Model
     {
         return $this->hasMany(AuditLog::class);
     }
+
+    public function gasTankSetting()
+    {
+        return $this->hasOne(GasTankSetting::class);
+    }
+
+    public function gasReadings()
+    {
+        return $this->hasMany(GasReading::class);
+    }
 }

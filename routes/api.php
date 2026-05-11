@@ -24,5 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/apartments/readings', [MobileController::class, 'apartmentReadings']);
     Route::post('/mobile/gas-readings', [MobileController::class, 'storeReading']);
     Route::post('/mobile/gas-readings/bulk-sync', [MobileController::class, 'bulkSync']);
+    Route::get('/mobile/gas-inventory', [MobileController::class, 'gasInventory']);
+    Route::get('/mobile/gas-deliveries', [MobileController::class, 'gasDeliveryList']);
+    Route::post('/mobile/gas-deliveries', [MobileController::class, 'storeGasDelivery']);
+    Route::post('/mobile/gas-deliveries/{gasDelivery}/receiving', [MobileController::class, 'updateGasDeliveryReceiving']);
+    Route::post('/mobile/gas-deliveries/{gasDelivery}/complete', [MobileController::class, 'completeGasDelivery']);
     Route::post('/mobile/gas-readings/{reading}/photo', [MobileController::class, 'uploadPhoto']);
 });

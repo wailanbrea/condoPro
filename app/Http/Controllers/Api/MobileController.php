@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Apartment;
 use App\Models\BillItem;
 use App\Models\Condominium;
+use App\Models\GasDelivery;
 use App\Models\GasReading;
+use App\Models\GasTankSetting;
 use App\Models\MonthlyBill;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
@@ -425,6 +427,221 @@ class MobileController extends Controller
     }
 
     // ========================================
+    // GAS INVENTORY
+    // ========================================
+
+    public function gasInventory(Request $request)
+    {
+        $request->validate([
+            'condominium_id' => 'required|exists:condominiums,id',
+        ]);
+
+        $condominium = Condominium::find($request->condominium_id);
+        $setting = GasTankSetting::getForCondominium($condominium->id);
+
+        $totalConsumption = GasReading::where('condominium_id', $condominium->id)
+            ->sum('gallons');
+
+        $estimatedInventory = max(0, (float) $setting->capacity_gallons - (float) $totalConsumption);
+        $availablePercentage = $setting->capacity_gallons > 0
+            ? round(($estimatedInventory / (float) $setting->capacity_gallons) * 100, 2)
+            : 0;
+
+        $status = 'normal';
+        if ($setting->status !== 'active') {
+            $status = 'inactive';
+        } elseif ($estimatedInventory <= (float) $setting->alert_min_gallons || $availablePercentage <= (float) $setting->alert_min_percentage) {
+            $status = 'low';
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tank_name' => $setting->tank_name,
+                'capacity_gallons' => (float) $setting->capacity_gallons,
+                'estimated_current_inventory' => round($estimatedInventory, 2),
+                'available_percentage' => $availablePercentage,
+                'alert_min_gallons' => (float) $setting->alert_min_gallons,
+                'alert_min_percentage' => (float) $setting->alert_min_percentage,
+                'average_consumption_method' => $setting->average_consumption_method,
+                'status' => $status,
+            ],
+        ]);
+    }
+
+    // ========================================
+    // GAS DELIVERIES
+    // ========================================
+
+    public function storeGasDelivery(Request $request)
+    {
+        $validated = $request->validate([
+            'condominium_id' => 'required|exists:condominiums,id',
+            'tank_reading_before' => 'required|numeric|gte:0',
+            'tank_photo_before' => 'nullable|image|max:10240',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = $request->user();
+        if ($user->role === 'admin' && (int) $validated['condominium_id'] !== $user->condominium_id) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $delivery = GasDelivery::create([
+            'condominium_id' => $validated['condominium_id'],
+            'tank_reading_before' => $validated['tank_reading_before'],
+            'status' => 'receiving',
+            'notes' => $validated['notes'] ?? null,
+            'created_by' => $user->id,
+        ]);
+
+        if ($request->hasFile('tank_photo_before')) {
+            $path = $request->file('tank_photo_before')->store('gas-deliveries', 'public');
+            $delivery->update(['tank_photo_before_path' => $path]);
+        }
+
+        $this->auditLog->log('gas_delivery_started', 'gas', $delivery->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recepción de gas iniciada correctamente.',
+            'data' => [
+                'id' => $delivery->id,
+                'status' => $delivery->status,
+                'tank_reading_before' => (float) $delivery->tank_reading_before,
+            ],
+        ], 201);
+    }
+
+    public function updateGasDeliveryReceiving(Request $request, GasDelivery $gasDelivery)
+    {
+        $validated = $request->validate([
+            'tank_reading_after' => 'required|numeric|gte:0',
+            'truck_meter_reading' => 'required|numeric|gte:0',
+            'tank_photo_after' => 'nullable|image|max:10240',
+            'truck_photo' => 'nullable|image|max:10240',
+        ]);
+
+        if ($gasDelivery->status !== 'receiving') {
+            return response()->json(['success' => false, 'message' => 'Esta recepción no está en estado de recepción.'], 400);
+        }
+
+        $tankSetting = GasTankSetting::getForCondominium($gasDelivery->condominium_id);
+        $gallonsDelivered = (float) $validated['truck_meter_reading'];
+
+        if ((float) $validated['tank_reading_after'] > $tankSetting->capacity_gallons) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La lectura después excede la capacidad del tanque (' . $tankSetting->capacity_gallons . ' gal). Confirme si desea continuar.',
+                'data' => ['capacity' => (float) $tankSetting->capacity_gallons, 'reading' => (float) $validated['tank_reading_after']],
+            ], 422);
+        }
+
+        $gasDelivery->update([
+            'tank_reading_after' => $validated['tank_reading_after'],
+            'truck_meter_reading' => $validated['truck_meter_reading'],
+            'gallons_delivered' => $gallonsDelivered,
+            'delivery_date' => now()->toDateString(),
+        ]);
+
+        if ($request->hasFile('tank_photo_after')) {
+            $path = $request->file('tank_photo_after')->store('gas-deliveries', 'public');
+            $gasDelivery->update(['tank_photo_after_path' => $path]);
+        }
+
+        if ($request->hasFile('truck_photo')) {
+            $path = $request->file('truck_photo')->store('gas-deliveries', 'public');
+            $gasDelivery->update(['truck_photo_path' => $path]);
+        }
+
+        $this->auditLog->log('gas_delivery_receiving_updated', 'gas', $gasDelivery->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lecturas del camión y tanque registradas.',
+            'data' => [
+                'id' => $gasDelivery->id,
+                'status' => $gasDelivery->fresh()->status,
+                'gallons_delivered' => (float) $gasDelivery->gallons_delivered,
+            ],
+        ]);
+    }
+
+    public function completeGasDelivery(Request $request, GasDelivery $gasDelivery)
+    {
+        $validated = $request->validate([
+            'invoice_amount' => 'required|numeric|gt:0',
+            'invoice_photo' => 'nullable|image|max:10240',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($gasDelivery->status !== 'receiving') {
+            return response()->json(['success' => false, 'message' => 'Esta recepción no está en estado de recepción.'], 400);
+        }
+
+        $gasDelivery->update([
+            'invoice_amount' => $validated['invoice_amount'],
+            'status' => 'completed',
+            'notes' => $validated['notes'] ?? $gasDelivery->notes,
+        ]);
+
+        if ($request->hasFile('invoice_photo')) {
+            $path = $request->file('invoice_photo')->store('gas-deliveries', 'public');
+            $gasDelivery->update(['invoice_photo_path' => $path]);
+        }
+
+        $this->auditLog->log('gas_delivery_completed', 'gas', $gasDelivery->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recepción de gas completada correctamente.',
+            'data' => [
+                'id' => $gasDelivery->id,
+                'status' => 'completed',
+                'invoice_amount' => (float) $gasDelivery->invoice_amount,
+                'gallons_delivered' => (float) $gasDelivery->gallons_delivered,
+            ],
+        ]);
+    }
+
+    public function gasDeliveryList(Request $request)
+    {
+        $request->validate([
+            'condominium_id' => 'required|exists:condominiums,id',
+        ]);
+
+        $user = $request->user();
+        if ($user->role === 'admin' && (int) $request->condominium_id !== $user->condominium_id) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $deliveries = GasDelivery::where('condominium_id', $request->condominium_id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($d) => [
+                'id' => $d->id,
+                'delivery_date' => $d->delivery_date?->format('Y-m-d'),
+                'tank_reading_before' => (float) ($d->tank_reading_before ?? 0),
+                'tank_reading_after' => (float) ($d->tank_reading_after ?? 0),
+                'truck_meter_reading' => (float) ($d->truck_meter_reading ?? 0),
+                'gallons_delivered' => (float) ($d->gallons_delivered ?? 0),
+                'invoice_amount' => (float) ($d->invoice_amount ?? 0),
+                'status' => $d->status,
+                'tank_photo_before_url' => $d->tank_photo_before_path ? Storage::url($d->tank_photo_before_path) : null,
+                'tank_photo_after_url' => $d->tank_photo_after_path ? Storage::url($d->tank_photo_after_path) : null,
+                'truck_photo_url' => $d->truck_photo_path ? Storage::url($d->truck_photo_path) : null,
+                'invoice_photo_url' => $d->invoice_photo_path ? Storage::url($d->invoice_photo_path) : null,
+                'notes' => $d->notes,
+                'created_at' => $d->created_at->format('Y-m-d H:i:s'),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $deliveries,
+        ]);
+    }
+
+    // ========================================
     // HELPERS
     // ========================================
     private function monthOptions(): array
@@ -437,7 +654,5 @@ class MobileController extends Controller
             ];
         }
         return $months;
-    }
-
     }
 }
