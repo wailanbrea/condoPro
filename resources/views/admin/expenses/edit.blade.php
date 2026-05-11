@@ -39,6 +39,7 @@
     <form action="{{ route('expenses.update', $expense) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+        <input type="hidden" name="condominium_id" value="{{ $expense->condominium_id }}">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
             <div>

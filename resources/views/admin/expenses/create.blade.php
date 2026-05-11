@@ -38,6 +38,7 @@
 <div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg max-w-3xl">
     <form action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
+        <input type="hidden" name="condominium_id" value="{{ auth()->user()->condominium_id ?? $condominiums->first()?->id }}">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
             <div>
