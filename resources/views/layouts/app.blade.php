@@ -131,7 +131,7 @@
         ['route' => 'users.index', 'icon' => 'groups', 'label' => __('messages.nav.residents')],
         ['route' => 'billing.index', 'icon' => 'receipt_long', 'label' => __('messages.nav.billing')],
         ['route' => 'gas.index', 'icon' => 'local_gas_station', 'label' => __('messages.nav.gas')],
-        ['route' => 'admin.gas.inventory', 'icon' => 'propane_tank', 'label' => app()->getLocale() === 'es' ? 'Inventario Gas' : 'Gas Inventory'],
+        
         ['route' => 'gas-deliveries.index', 'icon' => 'local_shipping', 'label' => app()->getLocale() === 'es' ? 'Recepciones Gas' : 'Gas Deliveries'],
         ['route' => 'gas-tank.edit', 'icon' => 'tune', 'label' => app()->getLocale() === 'es' ? 'Config. Tanque' : 'Tank Settings'],
         ['route' => 'extra-charges.index', 'icon' => 'warning', 'label' => app()->getLocale() === 'es' ? 'Imprevistos' : 'Extra Charges'],

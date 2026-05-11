@@ -13,7 +13,7 @@ use App\Http\Controllers\Admin\ExtraChargeController;
 use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\GasController;
 use App\Http\Controllers\Admin\GasDeliveryController;
-use App\Http\Controllers\Admin\GasInventoryController;
+
 use App\Http\Controllers\Admin\GasTankSettingController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReportController;
@@ -48,7 +48,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin'])->prefix('admin
     Route::resource('billing', BillingController::class);
     Route::get('/billing/{billing}/pdf', [BillingController::class, 'downloadPdf'])->name('billing.pdf');
     Route::resource('gas', GasController::class);
-    Route::get('/gas/inventario', [GasInventoryController::class, 'index'])->name('admin.gas.inventory');
+    
     Route::get('/gas-tank', [GasTankSettingController::class, 'edit'])->name('gas-tank.edit');
     Route::put('/gas-tank', [GasTankSettingController::class, 'update'])->name('gas-tank.update');
     Route::post('/gas-tank/reset', [GasTankSettingController::class, 'reset'])->name('gas-tank.reset');

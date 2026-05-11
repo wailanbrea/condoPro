@@ -38,6 +38,7 @@ class GasTankSettingController extends Controller
             : null;
 
         $tankData = null;
+        $deliveries = collect();
         if ($condoId && $setting && $setting->status === 'active') {
             $totalConsumption = GasReading::where('condominium_id', $condoId)
                 ->sum('gallons');
@@ -58,19 +59,66 @@ class GasTankSettingController extends Controller
                 : 0;
 
             $status = 'normal';
+            $statusLabel = 'Normal';
             if ($estimatedInventory <= (float) $setting->alert_min_gallons || $percentage <= (float) $setting->alert_min_percentage) {
                 $status = 'low';
+                $statusLabel = 'Nivel Bajo';
             }
+
+            $monthsBack = match ($setting->average_consumption_method) {
+                'last_6_months' => 6,
+                'last_12_months' => 12,
+                default => 3,
+            };
+
+            $monthlyConsumption = GasReading::where('condominium_id', $condoId)
+                ->where('created_at', '>=', now()->subMonths($monthsBack))
+                ->sum('gallons');
+
+            $monthsWithData = max(1, GasReading::where('condominium_id', $condoId)
+                ->where('created_at', '>=', now()->subMonths($monthsBack))
+                ->selectRaw('COUNT(DISTINCT CONCAT(billing_month, billing_year)) as cnt')
+                ->value('cnt') ?? 1);
+
+            $avgMonthlyConsumption = $monthlyConsumption / $monthsWithData;
+            $dailyAverage = $avgMonthlyConsumption / 30;
+            $estimatedDays = $dailyAverage > 0 ? (int) round($estimatedInventory / $dailyAverage) : 0;
+
+            $consumptionByMonth = GasReading::where('condominium_id', $condoId)
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->selectRaw('billing_month, billing_year, SUM(gallons) as total_gallons')
+                ->groupBy('billing_month', 'billing_year')
+                ->orderBy('billing_year')->orderBy('billing_month')
+                ->get();
+
+            $deliveriesByMonth = GasDelivery::where('condominium_id', $condoId)
+                ->where('status', 'completed')
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->selectRaw('MONTH(delivery_date) as month, YEAR(delivery_date) as year, SUM(gallons_delivered) as total_gallons, SUM(invoice_amount) as total_amount')
+                ->groupByRaw('MONTH(delivery_date), YEAR(delivery_date)')
+                ->orderByRaw('YEAR(delivery_date), MONTH(delivery_date)')
+                ->get();
 
             $tankData = [
                 'capacity' => (float) $setting->capacity_gallons,
                 'totalConsumption' => (float) $totalConsumption,
                 'totalDelivered' => (float) $totalDelivered,
-                'estimatedInventory' => round($estimatedInventory, 2),
+                'estimatedInventory' => round($estimatedInventory, 1),
                 'percentage' => $percentage,
                 'status' => $status,
-                'lastDelivery' => $lastDelivery,
+                'statusLabel' => $statusLabel,
+                'monthlyConsumption' => round($avgMonthlyConsumption, 1),
+                'dailyAverage' => round($dailyAverage, 2),
+                'estimatedDays' => $estimatedDays,
+                'lastDeliveryDate' => $lastDelivery?->delivery_date?->format('d M Y'),
+                'consumptionByMonth' => $consumptionByMonth,
+                'deliveriesByMonth' => $deliveriesByMonth,
             ];
+
+            $deliveries = GasDelivery::where('condominium_id', $condoId)
+                ->where('status', 'completed')
+                ->orderBy('delivery_date', 'desc')
+                ->paginate(10);
         }
 
         return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting', 'tankData'));
