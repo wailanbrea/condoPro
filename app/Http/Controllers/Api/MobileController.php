@@ -532,19 +532,21 @@ class MobileController extends Controller
         $gallonsDelivered = (float) $validated['truck_meter_reading'];
 
         if ((float) $validated['tank_reading_after'] > $tankSetting->capacity_gallons) {
-            return response()->json([
-                'success' => false,
-                'message' => 'La lectura después excede la capacidad del tanque (' . $tankSetting->capacity_gallons . ' gal). Confirme si desea continuar.',
-                'data' => ['capacity' => (float) $tankSetting->capacity_gallons, 'reading' => (float) $validated['tank_reading_after']],
-            ], 422);
+            $gasDelivery->update([
+                'tank_reading_after' => $validated['tank_reading_after'],
+                'truck_meter_reading' => $validated['truck_meter_reading'],
+                'gallons_delivered' => $gallonsDelivered,
+                'delivery_date' => now()->toDateString(),
+                'notes' => ($gasDelivery->notes ? $gasDelivery->notes . ' | ' : '') . 'Advertencia: Lectura después excede capacidad del tanque (' . $tankSetting->capacity_gallons . ' gal).',
+            ]);
+        } else {
+            $gasDelivery->update([
+                'tank_reading_after' => $validated['tank_reading_after'],
+                'truck_meter_reading' => $validated['truck_meter_reading'],
+                'gallons_delivered' => $gallonsDelivered,
+                'delivery_date' => now()->toDateString(),
+            ]);
         }
-
-        $gasDelivery->update([
-            'tank_reading_after' => $validated['tank_reading_after'],
-            'truck_meter_reading' => $validated['truck_meter_reading'],
-            'gallons_delivered' => $gallonsDelivered,
-            'delivery_date' => now()->toDateString(),
-        ]);
 
         if ($request->hasFile('tank_photo_after')) {
             $path = $request->file('tank_photo_after')->store('gas-deliveries', 'public');
