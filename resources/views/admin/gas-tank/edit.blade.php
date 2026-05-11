@@ -38,34 +38,6 @@
     </div>
 @endif
 
-@if($condoId && $setting)
-{{-- Tank Status Preview --}}
-<div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
-    <h4 class="font-headline-md text-headline-md mb-md flex items-center gap-2">
-        <span class="material-symbols-outlined" data-icon="water_drop">water_drop</span>
-        Estado Actual del Tanque
-    </h4>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
-        <div class="bg-surface-container-lowest rounded-lg p-md text-center">
-            <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Capacidad</p>
-            <p class="font-display-xl text-display-xl text-on-surface">{{ $setting->capacity_gallons }} gal</p>
-        </div>
-        <div class="bg-surface-container-lowest rounded-lg p-md text-center">
-            <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Alerta Mínima</p>
-            <p class="font-display-xl text-display-xl text-on-surface">{{ $setting->alert_min_gallons }} gal ({{ $setting->alert_min_percentage }}%)</p>
-        </div>
-        <div class="bg-surface-container-lowest rounded-lg p-md text-center">
-            <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Estado</p>
-            @if($setting->status === 'active')
-                <span class="px-3 py-1 bg-[#E3FCEF] text-[#006644] rounded-full text-[11px] font-bold uppercase tracking-wider">Activo</span>
-            @else
-                <span class="px-3 py-1 bg-[#FFEBE6] text-[#BF2600] rounded-full text-[11px] font-bold uppercase tracking-wider">Inactivo</span>
-            @endif
-        </div>
-    </div>
-</div>
-@endif
-
 {{-- Condominium Selector --}}
 @if(auth()->user()->role === 'super_admin')
 <div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
@@ -83,15 +55,128 @@
 @endif
 
 @if($condoId && $setting)
+
+{{-- Tank Visualization --}}
+<div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
+    <h4 class="font-headline-md text-headline-md mb-lg flex items-center gap-2">
+        <span class="material-symbols-outlined" data-icon="water_drop">water_drop</span>
+        {{ $setting->tank_name }}
+    </h4>
+
+    @if($tankData)
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-xl">
+        {{-- Tank Gauge --}}
+        <div class="flex flex-col items-center justify-center">
+            <div class="relative" style="width: 200px; height: 280px;">
+                {{-- Tank Body --}}
+                <div class="absolute inset-0 rounded-2xl border-4 overflow-hidden" style="border-color: #D1D5DB; background: #F3F4F6;">
+                    {{-- Gas Level --}}
+                    @php
+                        $fillHeight = $tankData['percentage'];
+                        $fillColor = $tankData['status'] === 'low' ? '#EF4444' : '#3B82F6';
+                        $waveColor = $tankData['status'] === 'low' ? '#DC2626' : '#2563EB';
+                    @endphp
+                    <div class="absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-in-out"
+                         style="height: {{ $fillHeight }}%; background: linear-gradient(180deg, {{ $fillColor }}22 0%, {{ $fillColor }}88 30%, {{ $waveColor }} 100%);">
+                        {{-- Wave Effect --}}
+                        <div class="absolute -top-2 left-0 right-0 overflow-hidden" style="height: 20px;">
+                            <svg viewBox="0 0 200 20" class="w-full" style="margin-top: -2px;">
+                                <path d="M0,10 C25,18 50,2 100,10 C150,18 175,2 200,10 L200,20 L0,20 Z" fill="{{ $fillColor }}66" />
+                                <path d="M0,12 C30,4 60,16 100,8 C140,0 170,14 200,8 L200,20 L0,20 Z" fill="{{ $fillColor }}44" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {{-- Percentage Overlay --}}
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <p class="font-bold text-on-surface" style="font-size: 2.5rem; line-height: 1; text-shadow: 0 1px 2px white; {{ $fillHeight < 25 ? 'color: #1F2937;' : '' }}">{{ number_format($tankData['percentage'], 0) }}%</p>
+                            <p class="text-sm font-medium" style="text-shadow: 0 1px 2px white;">{{ number_format($tankData['estimatedInventory'], 1) }} gal</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tank Top Cap --}}
+                <div class="absolute -top-2 left-4 right-4 h-4 rounded-t-lg" style="background: #9CA3AF;"></div>
+                {{-- Pipe Left --}}
+                <div class="absolute -top-6 left-8 w-3 h-6 rounded-t-sm" style="background: #9CA3AF;"></div>
+                {{-- Pipe Right --}}
+                <div class="absolute -top-6 right-8 w-3 h-6 rounded-t-sm" style="background: #9CA3AF;"></div>
+            </div>
+
+            {{-- Status Badge --}}
+            <div class="mt-md text-center">
+                @if($tankData['status'] === 'low')
+                    <div class="flex items-center gap-2 px-md py-sm bg-red-50 border border-red-200 rounded-lg">
+                        <span class="material-symbols-outlined text-red-600" data-icon="warning">warning</span>
+                        <span class="font-bold text-red-700">Nivel de gas bajo. Se recomienda solicitar abastecimiento.</span>
+                    </div>
+                @else
+                    <div class="flex items-center gap-2 px-md py-sm bg-green-50 border border-green-200 rounded-lg">
+                        <span class="material-symbols-outlined text-green-600" data-icon="check_circle">check_circle</span>
+                        <span class="font-bold text-green-700">Nivel Normal</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Stats Cards --}}
+        <div class="grid grid-cols-2 gap-md">
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 border-primary">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Capacidad</p>
+                <p class="font-display-xl text-display-xl text-on-surface">{{ number_format($tankData['capacity'], 0) }}</p>
+                <p class="text-body-sm text-on-surface-variant">galones</p>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 border-blue-500">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Inventario Estimado</p>
+                <p class="font-display-xl text-display-xl text-on-surface">{{ number_format($tankData['estimatedInventory'], 1) }}</p>
+                <p class="text-body-sm text-on-surface-variant">galones</p>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 border-amber-500">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Consumido</p>
+                <p class="font-display-xl text-display-xl text-on-surface">{{ number_format($tankData['totalConsumption'], 1) }}</p>
+                <p class="text-body-sm text-on-surface-variant">galones</p>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 border-green-500">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Recibido</p>
+                <p class="font-display-xl text-display-xl text-on-surface">{{ number_format($tankData['totalDelivered'], 1) }}</p>
+                <p class="text-body-sm text-on-surface-variant">galones</p>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 {{ $tankData['status'] === 'low' ? 'border-red-500' : 'border-tertiary' }}">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Alerta Mínima</p>
+                <p class="font-display-xl text-display-xl text-on-surface">{{ number_format($setting->alert_min_gallons, 0) }}</p>
+                <p class="text-body-sm text-on-surface-variant">gal ({{ $setting->alert_min_percentage }}%)</p>
+            </div>
+            @if($tankData['lastDelivery'])
+            <div class="bg-surface-container-lowest rounded-lg p-md text-center border-l-4 border-purple-500">
+                <p class="text-label-caps text-on-surface-variant font-label-caps mb-xs">Última Recepción</p>
+                <p class="font-headline-md text-headline-md text-on-surface">{{ $tankData['lastDelivery']->delivery_date?->format('d/m/Y') ?? '—' }}</p>
+                <p class="text-body-sm text-on-surface-variant">{{ number_format($tankData['lastDelivery']->gallons_delivered ?? 0, 1) }} gal</p>
+            </div>
+            @endif
+        </div>
+    </div>
+    @else
+    <div class="text-center py-lg">
+        <span class="material-symbols-outlined text-on-surface-variant mb-md" data-icon="propane_tank" style="font-size:48px;"></span>
+        <p class="text-on-surface-variant">El tanque está configurado pero no hay datos de inventario aún.</p>
+        <p class="text-body-sm text-on-surface-variant mt-sm">Registre recepciones de gas para ver el nivel del tanque.</p>
+    </div>
+    @endif
+</div>
+
 {{-- Settings Form --}}
 <div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] p-lg mb-xl">
+    <h4 class="font-headline-md text-headline-md mb-lg flex items-center gap-2">
+        <span class="material-symbols-outlined" data-icon="settings">settings</span>
+        Configuración
+    </h4>
     <form action="{{ route('gas-tank.update') }}" method="POST">
         @csrf
         @method('PUT')
         <input type="hidden" name="condominium_id" value="{{ $setting->condominium_id }}">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-lg mb-lg">
-            {{-- Tank Name --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="tank_name">Nombre del Tanque <span class="text-error">*</span></label>
                 <input type="text" id="tank_name" name="tank_name" value="{{ old('tank_name', $setting->tank_name) }}" required
@@ -101,7 +186,6 @@
                 @enderror
             </div>
 
-            {{-- Capacity --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="capacity_gallons">Capacidad Máxima (galones) <span class="text-error">*</span></label>
                 <input type="number" id="capacity_gallons" name="capacity_gallons" value="{{ old('capacity_gallons', $setting->capacity_gallons) }}" step="0.01" min="1" required
@@ -111,7 +195,6 @@
                 @enderror
             </div>
 
-            {{-- Alert Min Gallons --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="alert_min_gallons">Alerta Mínima (galones) <span class="text-error">*</span></label>
                 <input type="number" id="alert_min_gallons" name="alert_min_gallons" value="{{ old('alert_min_gallons', $setting->alert_min_gallons) }}" step="0.01" min="0" required
@@ -121,7 +204,6 @@
                 @enderror
             </div>
 
-            {{-- Alert Min Percentage --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="alert_min_percentage">Alerta Mínima (%) <span class="text-error">*</span></label>
                 <input type="number" id="alert_min_percentage" name="alert_min_percentage" value="{{ old('alert_min_percentage', $setting->alert_min_percentage) }}" step="0.01" min="0" max="100" required
@@ -131,7 +213,6 @@
                 @enderror
             </div>
 
-            {{-- Average Consumption Method --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="average_consumption_method">Método Promedio de Consumo <span class="text-error">*</span></label>
                 <select id="average_consumption_method" name="average_consumption_method" required
@@ -145,7 +226,6 @@
                 @enderror
             </div>
 
-            {{-- Status --}}
             <div>
                 <label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs" for="status">Estado <span class="text-error">*</span></label>
                 <select id="status" name="status" required

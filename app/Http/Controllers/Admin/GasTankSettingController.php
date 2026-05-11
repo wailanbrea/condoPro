@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Condominium;
+use App\Models\GasDelivery;
+use App\Models\GasReading;
 use App\Models\GasTankSetting;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
@@ -35,7 +37,43 @@ class GasTankSettingController extends Controller
             ? GasTankSetting::getForCondominium($condoId)
             : null;
 
-        return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting'));
+        $tankData = null;
+        if ($condoId && $setting && $setting->status === 'active') {
+            $totalConsumption = GasReading::where('condominium_id', $condoId)
+                ->sum('gallons');
+
+            $lastDelivery = GasDelivery::where('condominium_id', $condoId)
+                ->where('status', 'completed')
+                ->orderBy('delivery_date', 'desc')
+                ->first();
+
+            $totalDelivered = GasDelivery::where('condominium_id', $condoId)
+                ->where('status', 'completed')
+                ->sum('gallons_delivered');
+
+            $estimatedInventory = max(0, (float) $setting->capacity_gallons - (float) $totalConsumption + (float) $totalDelivered);
+            $estimatedInventory = min($estimatedInventory, (float) $setting->capacity_gallons);
+            $percentage = $setting->capacity_gallons > 0
+                ? round(($estimatedInventory / (float) $setting->capacity_gallons) * 100, 1)
+                : 0;
+
+            $status = 'normal';
+            if ($estimatedInventory <= (float) $setting->alert_min_gallons || $percentage <= (float) $setting->alert_min_percentage) {
+                $status = 'low';
+            }
+
+            $tankData = [
+                'capacity' => (float) $setting->capacity_gallons,
+                'totalConsumption' => (float) $totalConsumption,
+                'totalDelivered' => (float) $totalDelivered,
+                'estimatedInventory' => round($estimatedInventory, 2),
+                'percentage' => $percentage,
+                'status' => $status,
+                'lastDelivery' => $lastDelivery,
+            ];
+        }
+
+        return view('admin.gas-tank.edit', compact('condominiums', 'condoId', 'setting', 'tankData'));
     }
 
     public function update(Request $request)
