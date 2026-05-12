@@ -199,6 +199,42 @@
     </div>
 </div>
 
+{{-- Expenses Detail --}}
+<div class="bg-white rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] overflow-hidden mb-xl">
+    <div class="p-lg border-b border-surface-container-low">
+        <h3 class="font-headline-md text-headline-md text-on-surface">{{ app()->getLocale() === 'es' ? 'Egresos' : 'Expenses' }}</h3>
+        <p class="text-body-sm text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Gastos registrados del condominio' : 'Registered condominium expenses' }}</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low/50">
+                <tr>
+                    <th class="px-lg py-md text-label-caps font-label-caps text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Fecha' : 'Date' }}</th>
+                    <th class="px-lg py-md text-label-caps font-label-caps text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Categoría' : 'Category' }}</th>
+                    <th class="px-lg py-md text-label-caps font-label-caps text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Concepto' : 'Concept' }}</th>
+                    <th class="px-lg py-md text-label-caps font-label-caps text-on-surface-variant text-right">{{ app()->getLocale() === 'es' ? 'Monto' : 'Amount' }}</th>
+                    <th class="px-lg py-md text-label-caps font-label-caps text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'Registrado por' : 'Registered by' }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-container-low">
+                @forelse($expensesDetail as $expense)
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-lg py-md text-on-surface-variant">{{ $expense->date ? $expense->date->format('d M Y') : '—' }}</td>
+                        <td class="px-lg py-md"><span class="px-2 py-1 bg-error/10 text-error rounded text-xs font-bold uppercase tracking-wider">{{ $expense->category?->name ?? '—' }}</span></td>
+                        <td class="px-lg py-md text-on-surface">{{ $expense->concept }}</td>
+                        <td class="px-lg py-md text-right font-mono-data font-bold text-error">-RD${{ number_format($expense->amount, 2) }}</td>
+                        <td class="px-lg py-md text-on-surface-variant text-body-sm">{{ $expense->creator?->name ?? '—' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-lg py-xl text-center text-on-surface-variant">{{ app()->getLocale() === 'es' ? 'No hay egresos registrados' : 'No expenses registered' }}</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {{-- Legend --}}
 <div class="flex flex-wrap gap-lg text-body-sm text-on-surface-variant">
     <div class="flex items-center gap-sm">

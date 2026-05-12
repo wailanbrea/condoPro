@@ -101,6 +101,12 @@ class CondominiumFundController extends Controller
             ->orderBy('movement_date', 'desc')
             ->get();
 
+        $expensesDetail = Expense::with('category', 'creator')
+            ->where('condominium_id', $condominiumId)
+            ->whereYear('date', $year)
+            ->orderBy('date', 'desc')
+            ->get();
+
         $isAdmin = in_array($user->role, ['super_admin', 'admin']);
         $layout = $isAdmin ? 'layouts.app' : 'layouts.resident';
 
@@ -115,6 +121,7 @@ class CondominiumFundController extends Controller
             'layout',
             'isAdmin',
             'movements',
+            'expensesDetail',
             'success',
             'error'
         ));
