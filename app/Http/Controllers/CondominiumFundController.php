@@ -150,8 +150,7 @@ class CondominiumFundController extends Controller
         return view('condominium-fund.history', compact(
             'condominium', 'months', 'year', 'finalBalance',
             'totalIncome', 'totalExpenses',
-            'layout', 'isAdmin',
-            'success', 'error'
+            'layout', 'isAdmin'
         ));
     }
 
