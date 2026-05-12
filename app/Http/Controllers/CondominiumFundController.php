@@ -63,21 +63,21 @@ class CondominiumFundController extends Controller
             ->whereYear('payment_date', $year)
             ->orderBy('payment_date', 'desc')
             ->get()
-            ->groupBy(fn($p) => (int) $p->payment_date->format('n'));
+            ->groupBy(fn($p) => (int) ($p->payment_date?->format('n') ?? 0));
 
         $expensesDetail = Expense::with('category', 'creator')
             ->where('condominium_id', $condominiumId)
             ->whereYear('date', $year)
             ->orderBy('date', 'desc')
             ->get()
-            ->groupBy(fn($e) => (int) $e->date->format('n'));
+            ->groupBy(fn($e) => (int) ($e->date?->format('n') ?? 0));
 
         $adjustmentsDetail = FinancialMovement::where('condominium_id', $condominiumId)
             ->where('movement_type', 'adjustment')
             ->whereYear('movement_date', $year)
             ->orderBy('movement_date', 'desc')
             ->get()
-            ->groupBy(fn($a) => (int) $a->movement_date->format('n'));
+            ->groupBy(fn($a) => (int) ($a->movement_date?->format('n') ?? 0));
 
         $monthNames = [
             1 => __('messages.common.january'), 2 => __('messages.common.february'),
@@ -119,19 +119,19 @@ class CondominiumFundController extends Controller
                 'has_data' => $hasData,
                 'details' => [
                     'payments' => $monthPayments->map(fn($p) => [
-                        'date' => $p->payment_date,
+                        'date' => $p->payment_date?->format('Y-m-d'),
                         'concept' => $p->bill ? 'Factura ' . $p->bill->billing_month . '/' . $p->bill->billing_year : 'Pago',
                         'apartment' => $p->apartment?->number ?? '—',
                         'amount' => $p->amount,
                     ])->values()->toArray(),
                     'expenses' => $monthExpenses->map(fn($e) => [
-                        'date' => $e->date,
+                        'date' => $e->date?->format('Y-m-d'),
                         'category' => $e->category?->name ?? '—',
                         'concept' => $e->concept,
                         'amount' => $e->amount,
                     ])->values()->toArray(),
                     'adjustments' => $monthAdjustments->map(fn($a) => [
-                        'date' => $a->movement_date,
+                        'date' => $a->movement_date?->format('Y-m-d'),
                         'type' => $a->amount < 0 ? 'Retiro' : 'Depósito/Ajuste',
                         'description' => $a->description,
                         'amount' => $a->amount,

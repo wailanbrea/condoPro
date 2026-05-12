@@ -130,7 +130,7 @@
                                         <tbody class="divide-y divide-outline-variant/50">
                                             @foreach($m['details']['payments'] as $p)
                                             <tr>
-                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ \Carbon\Carbon::parse($p['date'])->format('d M') }}</td>
+                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ $p['date'] ? \Carbon\Carbon::parse($p['date'])->format('d M') : '—' }}</td>
                                                 <td class="py-xs">{{ $p['concept'] }}</td>
                                                 <td class="py-xs hidden sm:table-cell">{{ $p['apartment'] }}</td>
                                                 <td class="py-xs text-right font-mono-data text-[#006644] font-bold">RD${{ number_format($p['amount'], 0) }}</td>
@@ -156,7 +156,7 @@
                                         <tbody class="divide-y divide-outline-variant/50">
                                             @foreach($m['details']['expenses'] as $e)
                                             <tr>
-                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ \Carbon\Carbon::parse($e['date'])->format('d M') }}</td>
+                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ $e['date'] ? \Carbon\Carbon::parse($e['date'])->format('d M') : '—' }}</td>
                                                 <td class="py-xs"><span class="px-1.5 py-0.5 bg-error/10 text-error rounded text-[10px] font-bold uppercase">{{ $e['category'] }}</span></td>
                                                 <td class="py-xs">{{ $e['concept'] }}</td>
                                                 <td class="py-xs text-right font-mono-data text-error font-bold">-RD${{ number_format($e['amount'], 0) }}</td>
@@ -182,7 +182,7 @@
                                         <tbody class="divide-y divide-outline-variant/50">
                                             @foreach($m['details']['adjustments'] as $a)
                                             <tr>
-                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ \Carbon\Carbon::parse($a['date'])->format('d M') }}</td>
+                                                <td class="py-xs text-on-surface-variant whitespace-nowrap">{{ $a['date'] ? \Carbon\Carbon::parse($a['date'])->format('d M') : '—' }}</td>
                                                 <td class="py-xs"><span class="px-1.5 py-0.5 {{ $a['amount'] < 0 ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary' }} rounded text-[10px] font-bold uppercase">{{ $a['type'] }}</span></td>
                                                 <td class="py-xs">{{ $a['description'] }}</td>
                                                 <td class="py-xs text-right font-mono-data font-bold {{ $a['amount'] < 0 ? 'text-error' : 'text-primary' }}">{{ $a['amount'] >= 0 ? '+' : '' }}RD${{ number_format($a['amount'], 0) }}</td>
