@@ -379,8 +379,8 @@ class MobileController extends Controller
                     'consumption_m3' => (float) $reading->consumption_m3,
                     'gallons' => (float) $reading->gallons,
                     'total_amount' => (float) $reading->total_amount,
-                    'status' => 'billed',
-                    'invoice_created' => true,
+                    'status' => 'confirmed',
+                    'invoice_created' => false,
                 ];
             } catch (\Exception $e) {
                 $errors[] = ['index' => $index, 'message' => $e->getMessage()];
@@ -441,10 +441,21 @@ class MobileController extends Controller
         $condominium = Condominium::find($request->condominium_id);
         $setting = GasTankSetting::getForCondominium($condominium->id);
 
-        $totalConsumption = GasReading::where('condominium_id', $condominium->id)
-            ->sum('gallons');
+        $totalDelivered = GasDelivery::where('condominium_id', $condominium->id)
+            ->where('status', 'completed')
+            ->sum('gallons_delivered');
 
-        $estimatedInventory = max(0, (float) $setting->capacity_gallons - (float) $totalConsumption);
+        $lastDelivery = GasDelivery::where('condominium_id', $condominium->id)
+            ->where('status', 'completed')
+            ->orderBy('delivery_date', 'desc')
+            ->first();
+
+        $consumptionSinceLastDelivery = $lastDelivery
+            ? (float) GasReading::where('condominium_id', $condominium->id)->where('created_at', '>=', $lastDelivery->created_at)->sum('gallons')
+            : 0;
+
+        $estimatedInventory = max(0, (float) $totalDelivered - $consumptionSinceLastDelivery);
+        $estimatedInventory = min($estimatedInventory, (float) $setting->capacity_gallons);
         $availablePercentage = $setting->capacity_gallons > 0
             ? round(($estimatedInventory / (float) $setting->capacity_gallons) * 100, 2)
             : 0;
@@ -583,6 +594,10 @@ class MobileController extends Controller
             return response()->json(['success' => false, 'message' => 'Esta recepción no está en estado de recepción.'], 400);
         }
 
+        if (!$gasDelivery->tank_reading_after || !$gasDelivery->gallons_delivered) {
+            return response()->json(['success' => false, 'message' => 'Debe completar el paso 2 (lecturas del tanque y camión) antes de finalizar.'], 400);
+        }
+
         $gasDelivery->update([
             'invoice_amount' => $validated['invoice_amount'],
             'status' => 'completed',
@@ -595,6 +610,12 @@ class MobileController extends Controller
         }
 
         $this->createExpenseForDelivery($gasDelivery);
+
+        $tankSetting = GasTankSetting::getForCondominium($gasDelivery->condominium_id);
+        $tankSetting->update([
+            'last_reading' => $gasDelivery->tank_reading_after,
+            'last_reading_date' => $gasDelivery->delivery_date ?? now(),
+        ]);
 
         $this->auditLog->log('gas_delivery_completed', 'gas', $gasDelivery->id);
 

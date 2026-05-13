@@ -133,13 +133,18 @@ class BillingController extends Controller
         DB::transaction(function () use ($validated, $apartment) {
             $subtotal = 0;
 
+            $outstandingBalance = MonthlyBill::where('apartment_id', $apartment->id)
+                ->whereIn('status', ['pending', 'partial', 'overdue'])
+                ->selectRaw('SUM(GREATEST(0, total - payments_applied)) as total_outstanding')
+                ->value('total_outstanding') ?? 0;
+
             $bill = MonthlyBill::create([
                 'condominium_id' => $validated['condominium_id'],
-                'apartment_id' => $validated['apartment_id'],
+                'apartment_id' => $apartment->id,
                 'billing_month' => $validated['billing_month'],
                 'billing_year' => $validated['billing_year'],
                 'subtotal' => 0,
-                'previous_balance' => $apartment->balance,
+                'previous_balance' => $outstandingBalance,
                 'payments_applied' => 0,
                 'total' => 0,
                 'due_date' => $validated['due_date'],
@@ -202,7 +207,7 @@ class BillingController extends Controller
 
             $bill->update([
                 'subtotal' => $subtotal,
-                'total' => $apartment->balance + $subtotal,
+                'total' => $subtotal + $outstandingBalance,
             ]);
 
             $this->auditLog->log('bill_created', 'billing', $bill->id);

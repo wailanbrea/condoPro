@@ -104,7 +104,14 @@ class MonthlyFinancialReport extends Model
 
         $this->total_expenses = $expenses;
         $this->total_pending = $bills->where('status', '!=', 'paid')->sum('total');
-        $this->final_balance = $this->initial_balance + $this->total_income - $this->total_expenses - $this->special_payments;
+
+        $totalAdjustments = FinancialMovement::where('condominium_id', $this->condominium_id)
+            ->where('month', $this->month)
+            ->where('year', $this->year)
+            ->where('movement_type', 'adjustment')
+            ->sum('amount');
+
+        $this->final_balance = $this->initial_balance + $this->total_income - $this->total_expenses - $this->special_payments + $totalAdjustments;
 
         return $this;
     }

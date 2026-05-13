@@ -15,12 +15,16 @@ class GasTankSetting extends Model
         'alert_min_percentage',
         'average_consumption_method',
         'status',
+        'last_reading',
+        'last_reading_date',
     ];
 
     protected $casts = [
         'capacity_gallons' => 'decimal:2',
         'alert_min_gallons' => 'decimal:2',
         'alert_min_percentage' => 'decimal:2',
+        'last_reading' => 'decimal:2',
+        'last_reading_date' => 'datetime',
     ];
 
     public function condominium(): BelongsTo
