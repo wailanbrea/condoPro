@@ -23,14 +23,4 @@ return new class extends Migration
             $table->dropColumn(['last_reading', 'last_reading_date']);
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('gas_tank_settings', function (Blueprint $table) {
-            //
-        });
-    }
 };
